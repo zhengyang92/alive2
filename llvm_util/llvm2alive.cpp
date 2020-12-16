@@ -12,11 +12,14 @@
 #include "llvm/IR/GetElementPtrTypeIterator.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstVisitor.h"
+#include "llvm/IR/IntrinsicsX86.h"
 #include "llvm/IR/Operator.h"
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
+
+#include "vectorsyn/lib/SIMDBinOp.h"
 
 using namespace llvm_util;
 using namespace IR;
@@ -56,6 +59,15 @@ string_view s(llvm::StringRef str) {
   auto b = get_operand(i.getOperand(1));  \
   auto c = get_operand(i.getOperand(2));  \
   if (!ty || !a || !b || !c)              \
+    return error(i)
+
+#define PARSE_QUATEROP()                  \
+  auto ty = llvm_type2alive(i.getType()); \
+  auto a = get_operand(i.getOperand(0));  \
+  auto b = get_operand(i.getOperand(1));  \
+  auto c = get_operand(i.getOperand(2));  \
+  auto d = get_operand(i.getOperand(3));  \
+  if (!ty || !a || !b || !c || !d)        \
     return error(i)
 
 #define RETURN_IDENTIFIER(op)      \
@@ -858,6 +870,51 @@ public:
       RETURN_IDENTIFIER(
         make_unique<UnaryReductionOp>(*ty, value_name(i), *val, op));
     }
+    case llvm::Intrinsic::vp_add:
+    case llvm::Intrinsic::vp_sub:
+    case llvm::Intrinsic::vp_mul:
+    case llvm::Intrinsic::vp_sdiv:
+    case llvm::Intrinsic::vp_udiv:
+    case llvm::Intrinsic::vp_srem:
+    case llvm::Intrinsic::vp_urem:
+    case llvm::Intrinsic::vp_shl:
+    case llvm::Intrinsic::vp_ashr:
+    case llvm::Intrinsic::vp_lshr:
+    case llvm::Intrinsic::vp_and:
+    case llvm::Intrinsic::vp_or:
+    case llvm::Intrinsic::vp_xor: {
+      PARSE_QUATEROP();
+      VectorPredicatedBinOp::Op op;
+      switch (i.getIntrinsicID()) {
+      case llvm::Intrinsic::vp_add: op = VectorPredicatedBinOp::Add; break;
+      case llvm::Intrinsic::vp_sub: op = VectorPredicatedBinOp::Sub; break;
+      case llvm::Intrinsic::vp_mul: op = VectorPredicatedBinOp::Mul; break;
+      case llvm::Intrinsic::vp_sdiv:  op = VectorPredicatedBinOp::SDiv;  break;
+      case llvm::Intrinsic::vp_udiv: op = VectorPredicatedBinOp::UDiv; break;
+      case llvm::Intrinsic::vp_srem: op = VectorPredicatedBinOp::SRem; break;
+      case llvm::Intrinsic::vp_urem: op = VectorPredicatedBinOp::URem; break;
+      case llvm::Intrinsic::vp_shl: op = VectorPredicatedBinOp::Shl; break;
+      case llvm::Intrinsic::vp_ashr: op = VectorPredicatedBinOp::AShr; break;
+      case llvm::Intrinsic::vp_lshr: op = VectorPredicatedBinOp::LShr; break;
+      case llvm::Intrinsic::vp_and: op = VectorPredicatedBinOp::And; break;
+      case llvm::Intrinsic::vp_or: op = VectorPredicatedBinOp::Or; break;
+      case llvm::Intrinsic::vp_xor: op = VectorPredicatedBinOp::Xor; break;
+      default: UNREACHABLE();
+      }
+      RETURN_IDENTIFIER(
+        make_unique<VectorPredicatedBinOp>(*ty, value_name(i),
+                                           *a, *b, *c, *d, op));
+    }
+    case llvm::Intrinsic::masked_load: {
+      PARSE_QUATEROP();
+      unsigned align = llvm::cast<llvm::ConstantInt>(i.getOperand(1))
+                         ->getAlignValue().value();
+      auto ld = make_unique<Load>(*ty, "#ld#" + value_name(i), *a, align);
+      auto ld_ptr = ld.get();
+      BB->addInstr(move(ld));
+      RETURN_IDENTIFIER(make_unique<Select>(*ty, value_name(i),
+                                            *c, *ld_ptr, *d));
+    }
     case llvm::Intrinsic::fshl:
     case llvm::Intrinsic::fshr:
     case llvm::Intrinsic::fma:
@@ -889,6 +946,137 @@ public:
       }
       RETURN_IDENTIFIER(make_unique<BinOp>(*ty, value_name(i), *a, *b,
                                            op, BinOp::None, parse_fmath(i)));
+    }
+    case llvm::Intrinsic::x86_sse2_pavg_w:
+    case llvm::Intrinsic::x86_ssse3_pshuf_b_128:
+    case llvm::Intrinsic::x86_avx2_packssdw:
+    case llvm::Intrinsic::x86_avx2_packsswb:
+    case llvm::Intrinsic::x86_avx2_packusdw:
+    case llvm::Intrinsic::x86_avx2_packuswb:
+    case llvm::Intrinsic::x86_avx2_pavg_b:
+    case llvm::Intrinsic::x86_avx2_pavg_w:
+    case llvm::Intrinsic::x86_avx2_phadd_d:
+    case llvm::Intrinsic::x86_avx2_phadd_sw:
+    case llvm::Intrinsic::x86_avx2_phadd_w:
+    case llvm::Intrinsic::x86_avx2_phsub_d:
+    case llvm::Intrinsic::x86_avx2_phsub_sw:
+    case llvm::Intrinsic::x86_avx2_phsub_w:
+    case llvm::Intrinsic::x86_avx2_pmadd_ub_sw:
+    case llvm::Intrinsic::x86_avx2_pmadd_wd:
+    case llvm::Intrinsic::x86_avx2_pmul_hr_sw:
+    case llvm::Intrinsic::x86_avx2_pmulh_w:
+    case llvm::Intrinsic::x86_avx2_pmulhu_w:
+    case llvm::Intrinsic::x86_avx2_psign_b:
+    case llvm::Intrinsic::x86_avx2_psign_d:
+    case llvm::Intrinsic::x86_avx2_psign_w:
+    case llvm::Intrinsic::x86_avx2_psll_d:
+    case llvm::Intrinsic::x86_avx2_psll_q:
+    case llvm::Intrinsic::x86_avx2_psll_w:
+    case llvm::Intrinsic::x86_avx2_psllv_d:
+    case llvm::Intrinsic::x86_avx2_psllv_d_256:
+    case llvm::Intrinsic::x86_avx2_psllv_q:
+    case llvm::Intrinsic::x86_avx2_psllv_q_256:
+    case llvm::Intrinsic::x86_avx2_psrav_d:
+    case llvm::Intrinsic::x86_avx2_psrav_d_256:
+    case llvm::Intrinsic::x86_avx2_psrl_d:
+    case llvm::Intrinsic::x86_avx2_psrl_q:
+    case llvm::Intrinsic::x86_avx2_psrl_w:
+    case llvm::Intrinsic::x86_avx2_psrlv_d:
+    case llvm::Intrinsic::x86_avx2_psrlv_d_256:
+    case llvm::Intrinsic::x86_avx2_psrlv_q:
+    case llvm::Intrinsic::x86_avx2_psrlv_q_256:
+    case llvm::Intrinsic::x86_avx2_pshuf_b:
+    case llvm::Intrinsic::x86_bmi_pdep_32:
+    case llvm::Intrinsic::x86_bmi_pdep_64:
+    {
+      PARSE_BINOP();
+      SIMDBinOp::Op op;
+      switch (i.getIntrinsicID()) {
+      case llvm::Intrinsic::x86_sse2_pavg_w:
+        op = SIMDBinOp::x86_sse2_pavg_w; break;
+      case llvm::Intrinsic::x86_ssse3_pshuf_b_128:
+        op = SIMDBinOp::x86_ssse3_pshuf_b_128; break;
+      case llvm::Intrinsic::x86_avx2_packssdw:
+        op = SIMDBinOp::x86_avx2_packssdw; break;
+      case llvm::Intrinsic::x86_avx2_packsswb:
+        op = SIMDBinOp::x86_avx2_packsswb; break;
+      case llvm::Intrinsic::x86_avx2_packusdw:
+        op = SIMDBinOp::x86_avx2_packusdw; break;
+      case llvm::Intrinsic::x86_avx2_packuswb:
+        op = SIMDBinOp::x86_avx2_packuswb; break;
+      case llvm::Intrinsic::x86_avx2_pavg_b:
+        op = SIMDBinOp::x86_avx2_pavg_b; break;
+      case llvm::Intrinsic::x86_avx2_pavg_w:
+        op = SIMDBinOp::x86_avx2_pavg_w; break;
+      case llvm::Intrinsic::x86_avx2_phadd_d:
+        op = SIMDBinOp::x86_avx2_phadd_d; break;
+      case llvm::Intrinsic::x86_avx2_phadd_sw:
+        op = SIMDBinOp::x86_avx2_phadd_sw; break;
+      case llvm::Intrinsic::x86_avx2_phadd_w:
+        op = SIMDBinOp::x86_avx2_phadd_w; break;
+      case llvm::Intrinsic::x86_avx2_phsub_d:
+        op = SIMDBinOp::x86_avx2_phsub_d; break;
+      case llvm::Intrinsic::x86_avx2_phsub_sw:
+        op = SIMDBinOp::x86_avx2_phsub_sw; break;
+      case llvm::Intrinsic::x86_avx2_phsub_w:
+        op = SIMDBinOp::x86_avx2_phsub_w; break;
+      case llvm::Intrinsic::x86_avx2_pmadd_ub_sw:
+        op = SIMDBinOp::x86_avx2_pmadd_ub_sw; break;
+      case llvm::Intrinsic::x86_avx2_pmadd_wd:
+        op = SIMDBinOp::x86_avx2_pmadd_wd; break;
+      case llvm::Intrinsic::x86_avx2_pmul_hr_sw:
+        op = SIMDBinOp::x86_avx2_pmul_hr_sw; break;
+      case llvm::Intrinsic::x86_avx2_pmulh_w:
+        op = SIMDBinOp::x86_avx2_pmulh_w; break;
+      case llvm::Intrinsic::x86_avx2_pmulhu_w:
+        op = SIMDBinOp::x86_avx2_pmulhu_w; break;
+      case llvm::Intrinsic::x86_avx2_psign_b:
+        op = SIMDBinOp::x86_avx2_psign_b; break;
+      case llvm::Intrinsic::x86_avx2_psign_d:
+        op = SIMDBinOp::x86_avx2_psign_d; break;
+      case llvm::Intrinsic::x86_avx2_psign_w:
+        op = SIMDBinOp::x86_avx2_psign_w; break;
+      case llvm::Intrinsic::x86_avx2_psll_d:
+        op = SIMDBinOp::x86_avx2_psll_d; break;
+      case llvm::Intrinsic::x86_avx2_psll_q:
+        op = SIMDBinOp::x86_avx2_psll_q; break;
+      case llvm::Intrinsic::x86_avx2_psll_w:
+        op = SIMDBinOp::x86_avx2_psll_w; break;
+      case llvm::Intrinsic::x86_avx2_psllv_d:
+        op = SIMDBinOp::x86_avx2_psllv_d; break;
+      case llvm::Intrinsic::x86_avx2_psllv_d_256:
+        op = SIMDBinOp::x86_avx2_psllv_d_256; break;
+      case llvm::Intrinsic::x86_avx2_psllv_q:
+        op = SIMDBinOp::x86_avx2_psllv_q; break;
+      case llvm::Intrinsic::x86_avx2_psllv_q_256:
+        op = SIMDBinOp::x86_avx2_psllv_q_256; break;
+      case llvm::Intrinsic::x86_avx2_psrav_d:
+        op = SIMDBinOp::x86_avx2_psrav_d; break;
+      case llvm::Intrinsic::x86_avx2_psrav_d_256:
+        op = SIMDBinOp::x86_avx2_psrav_d_256; break;
+      case llvm::Intrinsic::x86_avx2_psrl_d:
+        op = SIMDBinOp::x86_avx2_psrl_d; break;
+      case llvm::Intrinsic::x86_avx2_psrl_q:
+        op = SIMDBinOp::x86_avx2_psrl_q; break;
+      case llvm::Intrinsic::x86_avx2_psrl_w:
+        op = SIMDBinOp::x86_avx2_psrl_w; break;
+      case llvm::Intrinsic::x86_avx2_psrlv_d:
+        op = SIMDBinOp::x86_avx2_psrlv_d; break;
+      case llvm::Intrinsic::x86_avx2_psrlv_d_256:
+        op = SIMDBinOp::x86_avx2_psrlv_d_256; break;
+      case llvm::Intrinsic::x86_avx2_psrlv_q:
+        op = SIMDBinOp::x86_avx2_psrlv_q; break;
+      case llvm::Intrinsic::x86_avx2_psrlv_q_256:
+        op = SIMDBinOp::x86_avx2_psrlv_q_256; break;
+      case llvm::Intrinsic::x86_avx2_pshuf_b:
+        op = SIMDBinOp::x86_avx2_pshuf_b; break;
+      case llvm::Intrinsic::x86_bmi_pdep_32:
+        op = SIMDBinOp::x86_bmi_pdep_32; break;
+      case llvm::Intrinsic::x86_bmi_pdep_64:
+        op = SIMDBinOp::x86_bmi_pdep_64; break;
+      default: UNREACHABLE();
+      }
+      RETURN_IDENTIFIER(make_unique<SIMDBinOp>(*ty, value_name(i), *a, *b, op));
     }
     case llvm::Intrinsic::lifetime_start:
     case llvm::Intrinsic::lifetime_end:

@@ -10,6 +10,7 @@
 #include <array>
 #include <numeric>
 #include <string>
+#include <iostream>
 
 using namespace IR;
 using namespace smt;
@@ -1198,6 +1199,7 @@ void Memory::markByVal(unsigned bid) {
 
 expr Memory::mkInput(const char *name, const ParamAttrs &attrs) {
   unsigned max_bid = has_null_block + num_globals_src + next_ptr_input++;
+  cout<<name<<"max_bid" << max_bid << "numnonlocalsrc" << num_nonlocals_src<<endl;
   assert(max_bid < num_nonlocals_src);
   Pointer p(*this, name, false, false, false, attrs);
   auto bid = p.getShortBid();
