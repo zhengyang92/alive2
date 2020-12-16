@@ -102,6 +102,7 @@ set(IR_SRCS
   ir/state_value.cpp
   ir/type.cpp
   ir/value.cpp
+  vectorsyn/lib/simd.cpp
 )
 
 add_library(ir STATIC ${IR_SRCS})
@@ -264,3 +265,5 @@ add_custom_target("check"
 if (BUILD_TV)
   add_dependencies("check" "alive-tv" "tv")
 endif()
+
+add_subdirectory(vectorsyn)
