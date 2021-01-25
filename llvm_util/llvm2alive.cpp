@@ -892,6 +892,16 @@ public:
         make_unique<VectorPredicatedBinOp>(*ty, value_name(i),
                                            *a, *b, *c, *d, op));
     }
+    case llvm::Intrinsic::masked_load: {
+      PARSE_QUATEROP();
+      unsigned align = llvm::cast<llvm::ConstantInt>(i.getOperand(1))
+                         ->getAlignValue().value();
+      auto ld = make_unique<Load>(*ty, "#ld#" + value_name(i), *a, align);
+      auto ld_ptr = ld.get();
+      BB->addInstr(move(ld));
+      RETURN_IDENTIFIER(make_unique<Select>(*ty, value_name(i),
+                                            *c, *ld_ptr, *d));
+    }
     case llvm::Intrinsic::fshl:
     case llvm::Intrinsic::fshr:
     case llvm::Intrinsic::fma:
