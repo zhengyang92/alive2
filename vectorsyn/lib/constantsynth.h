@@ -11,10 +11,9 @@ namespace vectorsynth {
 class ConstantSynth {
   tools::Transform &t;
   std::unordered_map<std::string, const IR::Instr*> tgt_instrs;
-  bool check_each_var;
 
 public:
-  ConstantSynth(tools::Transform &t, bool check_each_var);
+  ConstantSynth(tools::Transform &t) : t(t) {}
   util::Errors synthesize(std::unordered_map<const IR::Input*, smt::expr> &result) const;
 };
 

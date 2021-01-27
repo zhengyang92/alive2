@@ -269,15 +269,6 @@ static void error(Errors &errs, State &src_state, State &tgt_state,
 
 namespace vectorsynth {
 
-ConstantSynth::ConstantSynth(Transform &t, bool check_each_var) :
-  t(t), check_each_var(check_each_var) {
-  if (check_each_var) {
-    for (auto &i : t.tgt.instrs()) {
-      tgt_instrs.emplace(i.getName(), &i);
-    }
-  }
-}
-
 Errors ConstantSynth::synthesize(unordered_map<const Input*, expr> &result) const {
   //  calculateAndInitConstants(t);
   State::resetGlobals();

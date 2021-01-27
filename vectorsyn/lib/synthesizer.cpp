@@ -69,8 +69,8 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
     Comps.emplace_back(I.get());
   }
 
-  //auto RC1 = make_unique<ReservedConst>(nullptr);
-  //Comps.emplace_back(RC1.get());
+  auto RC1 = make_unique<ReservedConst>(nullptr);
+  Comps.emplace_back(RC1.get());
   llvm::Type *ty = V->getType();
   for (unsigned K = BinOp::Op::band; K <= BinOp::Op::mul; K++) {
     for (auto Op0 = Comps.begin(); Op0 != Comps.end(); ++Op0) {
