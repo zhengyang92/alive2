@@ -1,13 +1,14 @@
 // Copyright (c) 2020-present, author: Zhengyang Liu (liuz@cs.utah.edu).
 // Distributed under the MIT license that can be found in the LICENSE file.
+#include "EnumerativeSynthesis.h"
 
-#include "synthesizer.h"
 #include "ir/instr.h"
 #include "smt/smt.h"
 #include "smt/solver.h"
 #include "tools/transform.h"
 #include "util/config.h"
 #include "util/version.h"
+
 #include "llvm/ADT/Any.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/IR/LegacyPassManager.h"
@@ -17,6 +18,7 @@
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
+
 #include <fstream>
 #include <iostream>
 #include <random>

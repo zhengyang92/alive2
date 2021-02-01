@@ -1,12 +1,13 @@
 // Copyright (c) 2020-present, author: Zhengyang Liu (liuz@cs.utah.edu).
 // Distributed under the MIT license that can be found in the LICENSE file.
+#include "ConstantSynthesis.h"
 
-#include "constantsynth.h"
 #include "ir/globals.h"
 #include "smt/smt.h"
 #include "util/config.h"
 #include "util/errors.h"
 #include "util/symexec.h"
+
 #include <map>
 #include <sstream>
 
@@ -269,7 +270,7 @@ static void error(Errors &errs, State &src_state, State &tgt_state,
 
 namespace vectorsynth {
 
-Errors ConstantSynth::synthesize(unordered_map<const Input*, expr> &result) const {
+Errors ConstantSynthesis::synthesize(unordered_map<const Input*, expr> &result) const {
   //  calculateAndInitConstants(t);
   State::resetGlobals();
   IR::State src_state(t.src, true);

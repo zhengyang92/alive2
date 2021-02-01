@@ -1,15 +1,16 @@
 project(vectorsyn)
 
 set(SYNTHESIZER_SRC
-  "lib/constantsynth.cpp"
-  "lib/ir.cpp"
-  "lib/synthesizer.cpp"
+  "lib/ConstantSynthesis.cpp"
+  "lib/EnumerativeSynthesis.cpp"
+  "lib/IR.cpp"
+  "lib/SIMDBinOp.cpp"
 )
 
 add_library(synth STATIC ${SYNTHESIZER_SRC})
 set(VECTORSYNTH_LIBS_LLVM synth ${ALIVE_LIBS_LLVM})
 
-add_llvm_library(vectorsyn MODULE lib/pass.cpp)
+add_llvm_library(vectorsyn MODULE lib/Pass.cpp)
 
 target_link_libraries(vectorsyn PRIVATE ${VECTORSYNTH_LIBS_LLVM} ${Z3_LIBRARIES}
   $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)

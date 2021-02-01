@@ -1,8 +1,9 @@
 // Copyright (c) 2020-present, author: Zhengyang Liu (liuz@cs.utah.edu).
 // Distributed under the MIT license that can be found in the LICENSE file.
+#include "IR.h"
+#include "ConstantSynthesis.h"
+#include "EnumerativeSynthesis.h"
 
-#include "ir.h"
-#include "constantsynth.h"
 #include "smt/smt.h"
 #include "tools/transform.h"
 #include "util/symexec.h"
@@ -314,7 +315,6 @@ static bool compareFunctions(IR::Function &Func1, IR::Function &Func2,
   return result;
 }
 
-#if (false)
 static bool constantSynthesis(IR::Function &Func1, IR::Function &Func2,
                               unsigned &goodCount,
                               unsigned &badCount, unsigned &errorCount,
@@ -325,7 +325,7 @@ static bool constantSynthesis(IR::Function &Func1, IR::Function &Func2,
   Transform t;
   t.src = move(Func1);
   t.tgt = move(Func2);
-  vectorsynth::ConstantSynth verifier(t, false);
+  vectorsynth::ConstantSynthesis verifier(t);
   t.print(cout, print_opts);
   // assume type verifies
   std::unordered_map<const IR::Input *, smt::expr> result;
@@ -366,7 +366,6 @@ static bool constantSynthesis(IR::Function &Func1, IR::Function &Func2,
 
   return ret;
 }
-#endif
 
 static set<llvm::Function *> IntrinsicDecls;
 static llvm::Value *codeGen(Inst *I, llvm::IRBuilder<> &b,
@@ -661,12 +660,10 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
           auto Func2 = llvm_util::llvm2alive(*GF, *TLI);
           result |= compareFunctions(*Func1, *Func2, goodCount, badCount, errorCount);
         } else {
-          #if (false)
           inputMap.clear();
           constMap.clear();
           auto Func2 = llvm_util::llvm2alive(*GF, *TLI);
           result |= constantSynthesis(*Func1, *Func2, goodCount, badCount, errorCount, inputMap, constMap);
-          #endif
         }
         GF->eraseFromParent();
         if (goodCount) {

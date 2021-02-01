@@ -4,6 +4,7 @@
 
 #include "ir/value.h"
 #include "ir/instr.h"
+
 #include <array>
 
 namespace IR {
