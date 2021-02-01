@@ -1,5 +1,5 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 @LLVM_BINARY_DIR@/bin/opt -load=@PROJECT_BINARY_DIR@/vectorsyn.so -so $@ -S -o -
