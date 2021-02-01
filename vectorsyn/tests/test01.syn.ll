@@ -1,3 +1,4 @@
+; CHECK: synthesis
 define i1 @eq_zero(i4 %x, i4 %y) {
 ; CHECK-LABEL: @eq_zero(
 ; CHECK-NEXT:    [[I0:%.*]] = icmp eq i4 [[X:%.*]], 0

@@ -2,4 +2,4 @@
 
 set -e
 
-@LLVM_BINARY_DIR@/bin/opt -load=@PROJECT_BINARY_DIR@/vectorsyn.so -so $@
+@LLVM_BINARY_DIR@/bin/opt -load=@PROJECT_BINARY_DIR@/vectorsyn.so -so $@ -S -o -

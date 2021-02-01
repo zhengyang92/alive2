@@ -70,7 +70,7 @@ class VectorSynthTest(TestFormat):
 
     opt_tv = test.endswith('.syn.ll')
     if opt_tv:
-      cmd = ['./opt-synthesis-test.sh', '-disable-output']
+      cmd = ['./opt-synthesis-test.sh']
       if not os.path.isfile('opt-synthesis-test.sh'):
         return lit.Test.UNSUPPORTED, ''
 

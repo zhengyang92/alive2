@@ -410,7 +410,6 @@ static llvm::Value *codeGen(Inst *I, llvm::IRBuilder<> &b,
     auto op1 = codeGen(B->R(), b, VMap, F, constMap);
     llvm::Function *Intr = nullptr;
     llvm::Module *M = F.getParent();
-    cout<<B->K()<<endl;
     switch (B->K()) {
     case SIMDBinOp::Op::x86_avx2_packssdw:
       Intr = llvm::Intrinsic::getDeclaration(M, llvm::Intrinsic::x86_avx2_packssdw);
@@ -527,9 +526,6 @@ static llvm::Value *codeGen(Inst *I, llvm::IRBuilder<> &b,
       UNREACHABLE();
     }
     IntrinsicDecls.insert(Intr);
-    Intr->dump();
-    op0->dump();
-    op1->dump();
     return llvm::CallInst::Create(Intr, llvm::ArrayRef<llvm::Value *>({op0, op1}), "intr", llvm::cast<llvm::Instruction>(b.GetInsertPoint()));
   } else if (auto RC = dynamic_cast<ReservedConst *>(I)) {
     if (!constMap) {
@@ -544,9 +540,6 @@ static llvm::Value *codeGen(Inst *I, llvm::IRBuilder<> &b,
     auto op0 = codeGen(SV->L(), b, VMap, F, constMap);
     auto op1 = codeGen(SV->R(), b, VMap, F, constMap);
     auto M = codeGen(SV->M(), b, VMap, F, constMap);
-    op0->dump();
-    op1->dump();
-    M->dump();
     return b.CreateShuffleVector(op0, op1, M);
 #endif
     return nullptr;
