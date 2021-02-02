@@ -17,50 +17,6 @@ using namespace tools;
 using namespace util;
 using namespace std;
 
-static void instantiate_undef(const Input *in, map<expr, expr> &instances,
-                              map<expr, expr> &instances2, const Type &ty,
-                              unsigned child) {
-  if (auto agg = ty.getAsAggregateType()) {
-    for (unsigned i = 0, e = agg->numElementsConst(); i < e; ++i) {
-      if (!agg->isPadding(i))
-        instantiate_undef(in, instances, instances2, agg->getChild(i),
-                          child + i);
-    }
-    return;
-  }
-
-  // Bail out if it gets too big. It's unlikely we can solve it anyway.
-  if (instances.size() >= 128 || hit_half_memory_limit())
-    return;
-
-  auto var = in->getUndefVar(ty, child);
-  if (!var.isValid())
-    return;
-
-  // TODO: add support for per-bit input undef
-  assert(var.bits() == 1);
-
-  expr nums[2] = { expr::mkUInt(0, 1), expr::mkUInt(1, 1) };
-
-  for (auto &[e, v] : instances) {
-    for (unsigned i = 0; i < 2; ++i) {
-      expr newexpr = e.subst(var, nums[i]);
-      if (newexpr.eq(e)) {
-        instances2[move(newexpr)] = v;
-        break;
-      }
-
-      newexpr = newexpr.simplify();
-      if (newexpr.isFalse())
-        continue;
-
-      // keep 'var' variables for counterexample printing
-      instances2.try_emplace(move(newexpr), v && var == nums[i]);
-    }
-  }
-  instances = move(instances2);
-}
-
 // borrowed from alive2
 static expr preprocess(Transform &t, const set<expr> &qvars0,
                        const set<expr> &undef_qvars, expr &&e) {
@@ -82,24 +38,7 @@ static expr preprocess(Transform &t, const set<expr> &qvars0,
     I = qvars.erase(I);
   }
 
-  if (config::disable_undef_input || undef_qvars.empty() ||
-      hit_half_memory_limit())
-    return expr::mkForAll(qvars, move(e));
-
-  // manually instantiate undef masks
-  map<expr, expr> instances({ { move(e), true } });
-  map<expr, expr> instances2;
-
-  for (auto &i : t.src.getInputs()) {
-    if (auto in = dynamic_cast<const Input*>(&i))
-      instantiate_undef(in, instances, instances2, i.getType(), 0);
-  }
-
-  expr insts(false);
-  for (auto &[e, v] : instances) {
-    insts |= expr::mkForAll(qvars, move(const_cast<expr&>(e))) && v;
-  }
-  return insts;
+  return expr::mkForAll(qvars, move(e));
 }
 
 static bool is_arbitrary(const expr &e) {
