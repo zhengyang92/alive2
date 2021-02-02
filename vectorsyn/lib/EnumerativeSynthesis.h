@@ -5,10 +5,8 @@
 #include "ir/function.h"
 
 namespace llvm {
-class DataLayout;
 class Function;
 class TargetLibraryInfo;
-class Triple;
 }
 
 namespace vectorsynth {

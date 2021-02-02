@@ -270,7 +270,7 @@ static void error(Errors &errs, State &src_state, State &tgt_state,
 
 namespace vectorsynth {
 
-Errors ConstantSynthesis::synthesize(unordered_map<const Input*, expr> &result) const {
+Errors ConstantSynthesis::synthesize(unordered_map<const Value*, expr> &result) const {
   //  calculateAndInitConstants(t);
   State::resetGlobals();
   IR::State src_state(t.src, true);

@@ -112,7 +112,6 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
                 continue;
             };
           };
-
           I = *Op0;
           J = *Op1;
         }
@@ -315,11 +314,11 @@ static bool compareFunctions(IR::Function &Func1, IR::Function &Func2,
   return result;
 }
 
-static bool constantSynthesis(IR::Function &Func1, IR::Function &Func2,
-                              unsigned &goodCount,
-                              unsigned &badCount, unsigned &errorCount,
-                              unordered_map<Input *, llvm::Argument *> &inputMap,
-                              unordered_map<llvm::Argument *, llvm::Constant *> &constMap) {
+static bool
+constantSynthesis(IR::Function &Func1, IR::Function &Func2,
+                  unsigned &goodCount, unsigned &badCount, unsigned &errorCount,
+                  unordered_map<const Value *, llvm::Argument *> &inputMap,
+                  unordered_map<llvm::Argument *, llvm::Constant *> &constMap) {
   TransformPrintOpts print_opts;
   smt_init->reset();
   Transform t;
@@ -328,7 +327,7 @@ static bool constantSynthesis(IR::Function &Func1, IR::Function &Func2,
   vectorsynth::ConstantSynthesis verifier(t);
   t.print(cout, print_opts);
   // assume type verifies
-  std::unordered_map<const IR::Input *, smt::expr> result;
+  std::unordered_map<const IR::Value *, smt::expr> result;
   Errors errs = verifier.synthesize(result);
 
   bool ret(errs);
@@ -588,7 +587,6 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
   for (auto &BB : F1) {
     for (llvm::BasicBlock::reverse_iterator I = BB.rbegin(), E = BB.rend(); I != E; I++) {
       unordered_map<llvm::Argument *, llvm::Constant *> constMap;
-      unordered_map<Input *, llvm::Argument *> inputMap;
       set<unique_ptr<Var>> Inputs;
       findInputs(&*I, Inputs, 20);
 
@@ -600,8 +598,9 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
           return get<0>(p1)->getInstructionCount() > get<0>(p2)->getInstructionCount();
         }
       };
+      unordered_map<string, llvm::Argument *> constants;
+      unsigned CI = 0;
       priority_queue<tuple<llvm::Function *, Inst *, bool>, vector<tuple<llvm::Function *, Inst *, bool>>, Comparator> Fns;
-      // Fast Codegen
       for (auto &Sketch : Sketches) {
         auto &G = Sketch.first;
         llvm::ValueToValueMapTy VMap;
@@ -624,16 +623,18 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
 
         llvm::Function::arg_iterator GI = GF->arg_begin();
 
-        for (llvm::Function::arg_iterator I = F1.arg_begin(), E = F1.arg_end(); I != E; ++I) {
+        for (auto I = F1.arg_begin(), E = F1.arg_end(); I != E; ++I, ++GI) {
           VMap[I] = GI;
           GI->setName(I->getName());
-          GI ++;
         }
-        unsigned CI = 0;
+
         for (auto &C : Sketch.second) {
-          GI->setName("_reservedc_" + std::to_string(CI));
+          string arg_name = "_reservedc_" + std::to_string(CI);
+          GI->setName(arg_name);
+          constants[arg_name] = GI;
           C->setA(GI);
-          CI ++;
+          ++CI;
+          ++GI;
         }
 
         llvm::CloneFunctionInto(GF, &F1, VMap, false, returns);
@@ -654,15 +655,22 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
       while (!Fns.empty()) {
         auto [GF, G, HaveC] = Fns.top();
         Fns.pop();
-          auto Func1 = llvm_util::llvm2alive(F1, *TLI);
+        auto Func1 = llvm_util::llvm2alive(F1, *TLI);
+        auto Func2 = llvm_util::llvm2alive(*GF, *TLI);
         unsigned goodCount = 0, badCount = 0, errorCount = 0;
         if (!HaveC) {
-          auto Func2 = llvm_util::llvm2alive(*GF, *TLI);
           result |= compareFunctions(*Func1, *Func2, goodCount, badCount, errorCount);
         } else {
-          inputMap.clear();
+          unordered_map<const Value *, llvm::Argument *> inputMap;
+          for (auto &I : Func2->getInputs()) {
+            string input_name = I.getName();
+            // remove "%"
+            input_name.erase(0, 1);
+            if (constants.count(input_name)) {
+              inputMap[&I] = constants[input_name];
+            }
+          }
           constMap.clear();
-          auto Func2 = llvm_util::llvm2alive(*GF, *TLI);
           result |= constantSynthesis(*Func1, *Func2, goodCount, badCount, errorCount, inputMap, constMap);
         }
         GF->eraseFromParent();
@@ -671,6 +679,8 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
           break;
         }
       }
+
+      // clean up
       while (!Fns.empty()) {
         auto [GF, G, HaveC] = Fns.top();
         Fns.pop();

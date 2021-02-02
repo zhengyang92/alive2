@@ -13,7 +13,7 @@ class ConstantSynthesis {
 
 public:
   ConstantSynthesis(tools::Transform &t) : t(t) {}
-  util::Errors synthesize(std::unordered_map<const IR::Input*, smt::expr> &result) const;
+  util::Errors synthesize(std::unordered_map<const IR::Value *, smt::expr> &result) const;
 };
 
 }
