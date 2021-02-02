@@ -43,7 +43,7 @@ public:
 
 class BinOp final : public Inst {
 public:
-  enum Op { band, bor, bxor, add, sub, mul};
+  enum Op { band, bor, bxor, add, sub, mul };
 private:
   Op op;
   Inst* lhs;
@@ -54,6 +54,9 @@ public:
   Inst *L() { return lhs; }
   Inst *R() { return rhs; }
   Op K() { return op; }
+  static bool isCommutative (Op k) {
+    return k == Op::band || k == Op::bor || k == Op::bxor || k == Op::mul;
+  }
 };
 
 class BinIntr final : public Inst {

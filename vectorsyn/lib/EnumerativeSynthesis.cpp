@@ -75,7 +75,8 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
   llvm::Type *ty = V->getType();
   for (unsigned K = BinOp::Op::band; K <= BinOp::Op::mul; K++) {
     for (auto Op0 = Comps.begin(); Op0 != Comps.end(); ++Op0) {
-      for (auto Op1 = Comps.begin(); Op1 != Comps.end(); ++Op1) {
+      auto Op1 = BinOp::isCommutative((BinOp::Op)K) ? Op0 : Comps.begin();
+      for (; Op1 != Comps.end(); ++Op1) {
         Inst *I = nullptr, *J = nullptr;
         set<unique_ptr<ReservedConst>> RCs;
 
