@@ -400,6 +400,21 @@ static llvm::Value *codeGen(Inst *I, llvm::IRBuilder<> &b,
     case BinOp::mul:
       r = b.CreateMul(op0, op1, "mul");
       break;
+    case BinOp::sdiv:
+      r = b.CreateSDiv(op0, op1, "sdiv");
+      break;
+    case BinOp::udiv:
+      r = b.CreateUDiv(op0, op1, "udiv");
+      break;
+    case BinOp::lshr:
+      r = b.CreateLShr(op0, op1, "lshr");
+      break;
+    case BinOp::ashr:
+      r = b.CreateAShr(op0, op1, "ashr");
+      break;
+    case BinOp::shl:
+      r = b.CreateShl(op0, op1, "shl");
+      break;
     default:
       UNREACHABLE();
     }

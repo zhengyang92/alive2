@@ -43,7 +43,7 @@ public:
 
 class BinOp final : public Inst {
 public:
-  enum Op { band, bor, bxor, add, sub, mul };
+  enum Op { band, bor, bxor, add, sub, mul, sdiv, udiv, lshr, ashr, shl};
 private:
   Op op;
   Inst* lhs;
