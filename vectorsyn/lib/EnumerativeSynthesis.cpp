@@ -125,7 +125,7 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
     }
     
     // BinaryIntrinsics
-    for (unsigned K = SIMDBinOp::Op::x86_avx2_packssdw;
+    for (unsigned K = SIMDBinOp::Op::x86_ssse3_pshuf_b_128;
          K <= SIMDBinOp::Op::x86_avx2_pshuf_b; ++K) {
       // typecheck for return val
       if (!ty->isVectorTy())

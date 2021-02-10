@@ -435,31 +435,23 @@ StateValue SIMDBinOp::toSMT(State &s) const {
   case x86_avx2_pshuf_b:
     auto vty = static_cast<const VectorType*>(aty);
     vector<StateValue> vals;
-    unsigned c = 16;
+    unsigned c;
+    switch (op) {
+    case x86_ssse3_pshuf_b_128: c = 16; break;
+    case x86_avx2_pshuf_b: c = 32; break;
+    default: UNREACHABLE();
+    }
     for (unsigned i = 0, e = c; i != e; ++i) {
       auto b = (aty->extract(op2, i).value);
       auto r = vty->extract(op1, b & expr::mkUInt(127, 8));
-      auto ai1 = expr::mkIf(b.extract(7, 7) == expr::mkUInt(0, 1),
+      auto ai = expr::mkIf(b.extract(7, 7) == expr::mkUInt(0, 1),
                             r.value,
                             expr::mkUInt(0, 8));
-      auto pi1 = expr::mkIf(b.extract(7, 7) == expr::mkUInt(0, 1),
+      auto pi = expr::mkIf(b.extract(7, 7) == expr::mkUInt(0, 1),
                             b.ule(expr::mkUInt(31, 8)) && r.non_poison,
                             true);
 
-      vals.emplace_back(move(ai1), move(pi1));
-    }
-    for (unsigned i = c, e = 32; i != e; ++i) {
-      auto b = (aty->extract(op2, i).value + expr::mkUInt(16, 8));
-      auto r = vty->extract(op1, b & expr::mkUInt(127, 8));
-      auto ai2 = expr::mkIf(b.extract(7, 7) == expr::mkUInt(0, 1),
-                            r.value,
-                            expr::mkUInt(0, 8));
-
-      auto pi2 = expr::mkIf(b.extract(7, 7) == expr::mkUInt(0, 1),
-                            b.ule(expr::mkUInt(31, 8)) && r.non_poison,
-                            true);
-
-      vals.emplace_back(move(ai2), move(pi2));
+      vals.emplace_back(move(ai), move(pi));
     }
 
     return ty->aggregateVals(vals);
