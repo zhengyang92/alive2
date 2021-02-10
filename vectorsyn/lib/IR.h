@@ -59,6 +59,33 @@ public:
   }
 };
 
+class ICmpOp final : public Inst {
+public:
+  // syntactic pruning: less than/less equal only
+  enum Cond { eq, ne, ult, ule, slt, sle};
+private:
+  Cond cond;
+  Inst* lhs;
+  Inst* rhs;
+public:
+  ICmpOp(Cond cond, Inst &lhs, Inst &rhs) : cond(cond), lhs(&lhs), rhs(&rhs) {}
+  void print(std::ostream &os) const override;
+  Inst *L() { return lhs; }
+  Inst *R() { return rhs; }
+  Cond K() { return cond; }
+};
+
+class BitCastOp final : public Inst {
+  Inst* i;
+  unsigned lanes_from, lanes_to;
+  unsigned width_from, width_to;
+public:
+  BitCastOp(Inst &i, unsigned lf, unsigned wf, unsigned lt, unsigned wt);
+
+  void print(std::ostream &os) const override;
+  Inst *I() { return i; }
+};
+
 class BinIntr final : public Inst {
 private:
   IR::SIMDBinOp::Op op;

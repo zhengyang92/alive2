@@ -4,6 +4,7 @@ set(SYNTHESIZER_SRC
   "lib/ConstantSynthesis.cpp"
   "lib/EnumerativeSynthesis.cpp"
   "lib/IR.cpp"
+  "lib/LLVMGen.cpp"
   "lib/SIMDBinOp.cpp"
 )
 

@@ -18,6 +18,7 @@ void ReservedConst::print(ostream &os) const {
   os << str;
 }
 
+
 void BinOp::print(ostream &os) const {
   const char *str = nullptr;
   switch (op) {
@@ -45,4 +46,9 @@ void BinIntr::print(ostream &os) const {
   os << str;
 }
 
+/*
+BitCastOp(Inst &i, unsigned lf, unsigned wf, unsigned lt, unsigned wt);
+  : i(&i), lanes_from(lf), lanes_to(lt), width_from(width_from), width_to(wt) {
+    assert(lf * wf == lt * wt);
+}*/
 };
