@@ -37,132 +37,135 @@ void SIMDBinOp::rauw(const Value &what, Value &with) {
   RAUW(b);
 }
 
-void SIMDBinOp::print(ostream &os) const {
-  const char *str = nullptr;
+string SIMDBinOp::getOpName(Op op) {
+  string str;
   switch (op) {
   case x86_ssse3_pshuf_b_128:
-    str = "x86.ssse3.pshuf.b.128 ";
+    str = "x86.ssse3.pshuf.b.128";
     break;
   case x86_avx2_packssdw:
-    str = "x86.avx2.packssdw ";
+    str = "x86.avx2.packssdw";
     break;
   case x86_avx2_packsswb:
-    str = "x86.avx2.packsswb ";
+    str = "x86.avx2.packsswb";
     break;
   case x86_avx2_packusdw:
-    str = "x86.avx2.packusdw ";
+    str = "x86.avx2.packusdw";
     break;
   case x86_avx2_packuswb:
-    str = "x86.avx2.packuswb ";
+    str = "x86.avx2.packuswb";
     break;
   case x86_avx2_pavg_b:
-    str = "x86.avx2.pavg.b ";
+    str = "x86.avx2.pavg.b";
     break;
   case x86_avx2_pavg_w:
-    str = "x86.avx2.pavg.w ";
+    str = "x86.avx2.pavg.w";
     break;
   case x86_avx2_phadd_d:
-    str = "x86.avx2.phadd.d ";
+    str = "x86.avx2.phadd.d";
     break;
   case x86_avx2_phadd_sw:
-    str = "x86.avx2.phadd.sw ";
+    str = "x86.avx2.phadd.sw";
     break;
   case x86_avx2_phadd_w:
-    str = "x86.avx2.phadd.w ";
+    str = "x86.avx2.phadd.w";
     break;
   case x86_avx2_phsub_d:
-    str = "x86.avx2.phsub.d ";
+    str = "x86.avx2.phsub.d";
     break;
   case x86_avx2_phsub_sw:
-    str = "x86.avx2.phsub.sw ";
+    str = "x86.avx2.phsub.sw";
     break;
   case x86_avx2_phsub_w:
-    str = "x86.avx2.phsub.w ";
+    str = "x86.avx2.phsub.w";
     break;
   case x86_avx2_pmadd_ub_sw:
-    str = "x86.avx2.pmadd.ub.sw ";
+    str = "x86.avx2.pmadd.ub.sw";
     break;
   case x86_avx2_pmadd_wd:
-    str = "x86.avx2.pmadd.wd ";
+    str = "x86.avx2.pmadd.wd";
     break;
   case x86_avx2_pmul_hr_sw:
-    str = "x86.avx2.pmul.hr.sw ";
+    str = "x86.avx2.pmul.hr.sw";
     break;
   case x86_avx2_pmulh_w:
-    str = "x86.avx2.pmulh.w ";
+    str = "x86.avx2.pmulh.w";
     break;
   case x86_avx2_pmulhu_w:
-    str = "x86.avx2.pmulhu.w ";
+    str = "x86.avx2.pmulhu.w";
     break;
   case x86_avx2_psign_b:
-    str = "x86.avx2.psign.b ";
+    str = "x86.avx2.psign.b";
     break;
   case x86_avx2_psign_d:
-    str = "x86.avx2.psign.d ";
+    str = "x86.avx2.psign.d";
     break;
   case x86_avx2_psign_w:
-    str = "x86.avx2.psign.w ";
+    str = "x86.avx2.psign.w";
     break;
   case x86_avx2_psll_d:
-    str = "x86.avx2.psll.d ";
+    str = "x86.avx2.psll.d";
     break;
   case x86_avx2_psll_q:
-    str = "x86.avx2.psll.q ";
+    str = "x86.avx2.psll.q";
     break;
   case x86_avx2_psll_w:
-    str = "x86.avx2.psll.w ";
+    str = "x86.avx2.psll.w";
     break;
   case x86_avx2_psllv_d:
-    str = "x86.avx2.psllv.d ";
+    str = "x86.avx2.psllv.d";
     break;
   case x86_avx2_psllv_d_256:
-    str = "x86.avx2.psllv.d.256 ";
+    str = "x86.avx2.psllv.d.256";
     break;
   case x86_avx2_psllv_q:
-    str = "x86.avx2.psllv.q ";
+    str = "x86.avx2.psllv.q";
     break;
   case x86_avx2_psllv_q_256:
-    str = "x86.avx2.psllv.q.256 ";
+    str = "x86.avx2.psllv.q.256";
     break;
   case x86_avx2_psrav_d:
-    str = "x86.avx2.psrav.d ";
+    str = "x86.avx2.psrav.d";
     break;
   case x86_avx2_psrav_d_256:
-    str = "x86.avx2.psrav.d.256 ";
+    str = "x86.avx2.psrav.d.256";
     break;
   case x86_avx2_psrl_d:
-    str = "x86.avx2.psrl.d ";
+    str = "x86.avx2.psrl.d";
     break;
   case x86_avx2_psrl_q:
-    str = "x86.avx2.psrl.q ";
+    str = "x86.avx2.psrl.q";
     break;
   case x86_avx2_psrl_w:
-    str = "x86.avx2.psrl.w ";
+    str = "x86.avx2.psrl.w";
     break;
   case x86_avx2_psrlv_d:
-    str = "x86.avx2.psrlv.d ";
+    str = "x86.avx2.psrlv.d";
     break;
   case x86_avx2_psrlv_d_256:
-    str = "x86.avx2.psrlv.d.256 ";
+    str = "x86.avx2.psrlv.d.256";
     break;
   case x86_avx2_psrlv_q:
-    str = "x86.avx2.psrlv.q ";
+    str = "x86.avx2.psrlv.q";
     break;
   case x86_avx2_psrlv_q_256:
-    str = "x86.avx2.psrlv.q.256 ";
+    str = "x86.avx2.psrlv.q.256";
     break;
   case x86_avx2_pshuf_b:
-    str = "x86.avx2.pshuf.b ";
+    str = "x86.avx2.pshuf.b";
     break;
   case x86_bmi_pdep_32:
-    str = "x86.bmi.pdep.32 ";
+    str = "x86.bmi.pdep.32";
     break;
   case x86_bmi_pdep_64:
-    str = "x86.bmi.pdep.64 ";
+    str = "x86.bmi.pdep.64";
     break;
   }
+  return str;
+}
 
-  os << getName() << " = " << str << *a << ", " << *b;
+void SIMDBinOp::print(ostream &os) const {
+  os << getName() << " = " << getOpName(op) << " " << *a << ", " << *b;
 }
 
 StateValue SIMDBinOp::toSMT(State &s) const {

@@ -203,7 +203,7 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
             J = *Op1;
           }
 
-          auto BO = make_unique<BinIntr>(op, *I, *J);
+          auto BO = make_unique<SIMDBinOpIntr>(op, *I, *J);
           R.push_back(make_pair(move(BO), move(RCs)));
         }
       }
@@ -419,6 +419,15 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
       vector<pair<unique_ptr<Inst>,set<unique_ptr<ReservedConst>>>> Sketches;
       getSketches(Inputs, &*I, Sketches);
 
+
+      if (Sketches.empty()) continue;
+
+      cout<<"---------Sketches------------"<<endl;
+      for (auto &Sketch : Sketches) {
+        cout<<*Sketch.first<<endl;
+      }
+      cout<<"-----------------------------"<<endl;
+
       struct Comparator {
         bool operator()(tuple<llvm::Function *, Inst *, bool>& p1, tuple<llvm::Function *, Inst *, bool> &p2) {
           return get<0>(p1)->getInstructionCount() > get<0>(p2)->getInstructionCount();
@@ -427,6 +436,8 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
       unordered_map<string, llvm::Argument *> constants;
       unsigned CI = 0;
       priority_queue<tuple<llvm::Function *, Inst *, bool>, vector<tuple<llvm::Function *, Inst *, bool>>, Comparator> Fns;
+
+      // sketches -> llvm functions
       for (auto &Sketch : Sketches) {
         auto &G = Sketch.first;
         llvm::ValueToValueMapTy VMap;
@@ -476,6 +487,8 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
 
         Fns.push(make_tuple(GF, G.get(), !Sketch.second.empty()));
       }
+
+      // llvm functions -> alive2 functions, followed by verification/synthesis
       while (!Fns.empty()) {
         auto [GF, G, HaveC] = Fns.top();
         Fns.pop();

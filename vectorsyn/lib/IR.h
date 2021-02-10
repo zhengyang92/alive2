@@ -11,8 +11,11 @@
 namespace vectorsynth {
 
 class Inst {
+  std::string name;
+  auto& getName() const { return name; }
 public:
   virtual void print(std::ostream &os) const = 0;
+  friend std::ostream& operator<<(std::ostream &os, const Inst &val);
   virtual ~Inst() {}
 };
 
@@ -86,13 +89,14 @@ public:
   Inst *I() { return i; }
 };
 
-class BinIntr final : public Inst {
+class SIMDBinOpIntr final : public Inst {
 private:
   IR::SIMDBinOp::Op op;
   Inst* lhs;
   Inst* rhs;
 public:
-  BinIntr(IR::SIMDBinOp::Op op, Inst &lhs, Inst &rhs) : op(op), lhs(&lhs), rhs(&rhs) {}
+  SIMDBinOpIntr(IR::SIMDBinOp::Op op, Inst &lhs, Inst &rhs)
+    : op(op), lhs(&lhs), rhs(&rhs) {}
   void print(std::ostream &os) const override;
   Inst *L() { return lhs; }
   Inst *R() { return rhs; }

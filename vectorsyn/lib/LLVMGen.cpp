@@ -65,7 +65,7 @@ Value* LLVMGen::codeGen(Inst *I, ValueToValueMapTy &VMap,
       UNREACHABLE();
     }
     return r;
-  } else if (auto B = dynamic_cast<BinIntr *>(I)) {
+  } else if (auto B = dynamic_cast<SIMDBinOpIntr *>(I)) {
     auto op0 = codeGen(B->L(), VMap, constMap);
     auto op1 = codeGen(B->R(), VMap, constMap);
     llvm::Function *decl = nullptr;
