@@ -55,6 +55,10 @@ static void findInputs(llvm::Value *Root, set<unique_ptr<Var>> &Cands,
         continue;
       if (V == Root)
         continue;
+      if (V->getType()->isPointerTy())
+        continue;
+      if (V->getType()->isFloatingPointTy())
+        continue;
       Cands.insert(make_unique<Var>(V));
       if (Cands.size() >= Max)
         return;
@@ -492,7 +496,9 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
       while (!Fns.empty()) {
         auto [GF, G, HaveC] = Fns.top();
         Fns.pop();
+        F1.dump();
         auto Func1 = llvm_util::llvm2alive(F1, *TLI);
+        GF->dump();
         auto Func2 = llvm_util::llvm2alive(*GF, *TLI);
         unsigned goodCount = 0, badCount = 0, errorCount = 0;
         if (!HaveC) {

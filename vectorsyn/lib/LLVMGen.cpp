@@ -9,6 +9,8 @@
 #include "llvm/IR/IntrinsicsX86.h"
 #include "llvm/IR/IRBuilder.h"
 
+#include <iostream>
+
 using namespace std;
 using namespace llvm;
 using namespace vectorsynth;
@@ -27,6 +29,9 @@ Value* LLVMGen::codeGen(Inst *I, ValueToValueMapTy &VMap,
     auto op0 = codeGen(B->L(), VMap, constMap);
     auto op1 = codeGen(B->R(), VMap, constMap);
     llvm::Value *r = nullptr;
+      cout<<B->K()<<endl;
+      op0->dump();
+      op1->dump();
     switch (B->K()) {
     case BinOp::band:
       r = b.CreateAnd(op0, op1, "and");
