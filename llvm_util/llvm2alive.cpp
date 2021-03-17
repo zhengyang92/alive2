@@ -934,6 +934,7 @@ public:
       RETURN_IDENTIFIER(make_unique<BinOp>(*ty, value_name(i), *a, *b,
                                            op, BinOp::None, parse_fmath(i)));
     }
+    case llvm::Intrinsic::x86_sse2_pavg_w:
     case llvm::Intrinsic::x86_ssse3_pshuf_b_128:
     case llvm::Intrinsic::x86_avx2_packssdw:
     case llvm::Intrinsic::x86_avx2_packsswb:
@@ -978,6 +979,8 @@ public:
       PARSE_BINOP();
       SIMDBinOp::Op op;
       switch (i.getIntrinsicID()) {
+      case llvm::Intrinsic::x86_sse2_pavg_w:
+        op = SIMDBinOp::x86_sse2_pavg_w; break;
       case llvm::Intrinsic::x86_ssse3_pshuf_b_128:
         op = SIMDBinOp::x86_ssse3_pshuf_b_128; break;
       case llvm::Intrinsic::x86_avx2_packssdw:

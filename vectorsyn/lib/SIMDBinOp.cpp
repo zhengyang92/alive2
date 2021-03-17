@@ -40,6 +40,8 @@ void SIMDBinOp::rauw(const Value &what, Value &with) {
 string SIMDBinOp::getOpName(Op op) {
   string str;
   switch (op) {
+  case x86_sse2_pavg_w:
+    str = "x86.sse2.pavg.w";
   case x86_ssse3_pshuf_b_128:
     str = "x86.ssse3.pshuf.b.128";
     break;
@@ -223,6 +225,7 @@ StateValue SIMDBinOp::toSMT(State &s) const {
     return ty->aggregateVals(vals);
   }
   // bitwise arithmetics
+  case x86_sse2_pavg_w:
   case x86_avx2_pavg_b:
   case x86_avx2_pavg_w:
   case x86_avx2_pmul_hr_sw:
@@ -249,6 +252,7 @@ StateValue SIMDBinOp::toSMT(State &s) const {
         return (a + b + expr::mkUInt(1, 8)).lshr(expr::mkUInt(1, 8));
       };
       break;
+    case x86_sse2_pavg_w:
     case x86_avx2_pavg_w:
       fn = [&](auto a, auto b) -> expr {
         return (a + b + expr::mkUInt(1, 16)).lshr(expr::mkUInt(1, 16));

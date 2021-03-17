@@ -75,6 +75,9 @@ llvm::Value* LLVMGen::codeGen(Inst *I, ValueToValueMapTy &VMap,
     auto op1 = codeGen(B->R(), VMap, constMap);
     llvm::Function *decl = nullptr;
     switch (B->K()) {
+    case IR::SIMDBinOp::Op::x86_sse2_pavg_w:
+      decl = Intrinsic::getDeclaration(M, Intrinsic::x86_sse2_pavg_w);
+      break;
     case IR::SIMDBinOp::Op::x86_ssse3_pshuf_b_128:
       decl = Intrinsic::getDeclaration(M, Intrinsic::x86_ssse3_pshuf_b_128);
       break;
