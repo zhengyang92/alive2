@@ -118,83 +118,6 @@ static void print_varval(ostream &os, State &st, const Model &m,
 
 using print_var_val_ty = function<void(ostream&, const Model&)>;
 
-static void error(Errors &errs, State &src_state, State &tgt_state,
-                  const Result &r, const Value *var,
-                  const char *msg, bool check_each_var,
-                  print_var_val_ty print_var_val) {
-
-  if (r.isInvalid()) {
-    errs.add("Invalid expr", false);
-    return;
-  }
-
-  if (r.isTimeout()) {
-    errs.add("Timeout", false);
-    return;
-  }
-
-  if (r.isError()) {
-    errs.add("SMT Error: " + r.getReason(), false);
-    return;
-  }
-
-  if (r.isSkip()) {
-    errs.add("Skip", false);
-    return;
-  }
-
-  stringstream s;
-  string empty;
-  auto &var_name = var ? var->getName() : empty;
-  auto &m = r.getModel();
-
-  s << msg;
-  if (!var_name.empty())
-    s << " for " << *var;
-  s << "\n\nExample:\n";
-
-  for (auto &[var, val] : src_state.getValues()) {
-    if (!dynamic_cast<const Input*>(var) &&
-        !dynamic_cast<const ConstantInput*>(var))
-      continue;
-    s << *var << " = ";
-    print_varval(s, src_state, m, var, var->getType(), val.first);
-    s << '\n';
-  }
-
-  set<string> seen_vars;
-  for (auto st : { &src_state, &tgt_state }) {
-    if (!check_each_var) {
-      if (st->isSource()) {
-        s << "\nSource:\n";
-      } else {
-        s << "\nTarget:\n";
-      }
-    }
-
-    for (auto &[var, val] : st->getValues()) {
-      auto &name = var->getName();
-      if (name == var_name)
-        break;
-
-      if (name[0] != '%' ||
-          dynamic_cast<const Input*>(var) ||
-          (check_each_var && !seen_vars.insert(name).second))
-        continue;
-
-      s << *var << " = ";
-      print_varval(s, const_cast<State&>(*st), m, var, var->getType(),
-                   val.first);
-      s << '\n';
-    }
-
-    st->getMemory().print(s, m);
-  }
-
-  print_var_val(s, m);
-  errs.add(s.str(), true);
-}
-
 namespace vectorsynth {
 
 Errors ConstantSynthesis::synthesize(unordered_map<const Value*, expr> &result) const {
@@ -275,66 +198,51 @@ Errors ConstantSynthesis::synthesize(unordered_map<const Value*, expr> &result) 
     config::dbg()<<poison_cnstr<<std::endl;
   }
 
-  const Value *var = nullptr;
-  bool check_each_var = false;
+  auto r = check_expr(mk_fml(dom && value_cnstr && poison_cnstr));
 
-  auto err = [&](const Result &r, print_var_val_ty print, const char *msg) {
-    error(errs, src_state, tgt_state, r, var, msg, check_each_var, print);
-  };
+  if (r.isInvalid()) {
+    errs.add("Invalid expr", false);
+    return errs;
+  }
 
-  Solver::check({
-      { mk_fml(dom_a.notImplies(dom_b)),
-          [&](const Result &r) {
-          err(r, [](ostream&, const Model&){},
-              "Source is more defined than target");
-      }},
-      { mk_fml(dom && value_cnstr && poison_cnstr),
-          [&](const Result &r) {
-          if (r.isInvalid()) {
-            errs.add("Invalid expr", false);
-            return;
-          }
+  if (r.isTimeout()) {
+    errs.add("Timeout", false);
+    return errs;
+  }
 
-          if (r.isTimeout()) {
-            errs.add("Timeout", false);
-            return;
-          }
+  if (r.isError()) {
+    errs.add("SMT Error: " + r.getReason(), false);
+    return errs;
+  }
 
-          if (r.isError()) {
-            errs.add("SMT Error: " + r.getReason(), false);
-            return;
-          }
+  if (r.isSkip()) {
+    errs.add("Skip", false);
+    return errs;
+  }
 
-          if (r.isSkip()) {
-            errs.add("Skip", false);
-            return;
-          }
+  if (r.isUnsat()) {
+    errs.add("Unsat", false);
+    return errs;
+  }
 
-          if (r.isUnsat()) {
-            errs.add("Unsat", false);
-            return;
-          }
+  stringstream s;
+  auto &m = r.getModel();
+  s << ";result\n";
+  for (auto &[var, val] : tgt_state.getValues()) {
+    if (!dynamic_cast<const Input*>(var) &&
+        !dynamic_cast<const ConstantInput*>(var))
+        continue;
 
+    if (var->getName().rfind("%_reservedc", 0) == 0) {
+      auto In = static_cast<const Input *>(var);
+      result[In] = m.eval(val.first.value);
+      s << *var << " = ";
+      print_varval(s, src_state, m, var, var->getType(), val.first);
+      s << '\n';
+    }
+  }
+  config::dbg()<<s.str();
 
-          stringstream s;
-          auto &m = r.getModel();
-          s << ";result\n";
-          for (auto &[var, val] : tgt_state.getValues()) {
-            if (!dynamic_cast<const Input*>(var) &&
-                !dynamic_cast<const ConstantInput*>(var))
-                continue;
-
-            if (var->getName().rfind("%_reservedc", 0) == 0) {
-              auto In = static_cast<const Input *>(var);
-              result[In] = m.eval(val.first.value);
-              s << *var << " = ";
-              print_varval(s, src_state, m, var, var->getType(), val.first);
-              s << '\n';
-            }
-          }
-          config::dbg()<<s.str();
-      }}
-    });
   return errs;
 }
 
