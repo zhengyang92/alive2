@@ -17,7 +17,7 @@ using namespace vectorsynth;
 
 namespace vectorsynth {
 
-Value* LLVMGen::codeGen(Inst *I, ValueToValueMapTy &VMap,
+llvm::Value* LLVMGen::codeGen(Inst *I, ValueToValueMapTy &VMap,
                         unordered_map<Argument *, Constant*> *constMap) {
   if (auto V = dynamic_cast<Var *>(I)) {
     if (VMap.empty()) {
@@ -193,7 +193,7 @@ Value* LLVMGen::codeGen(Inst *I, ValueToValueMapTy &VMap,
       UNREACHABLE();
     }
     IntrinsicDecls.insert(decl);
-    return CallInst::Create(decl, ArrayRef<Value *>({op0, op1}),
+    return CallInst::Create(decl, ArrayRef<llvm::Value *>({op0, op1}),
                             "intr", cast<Instruction>(b.GetInsertPoint()));
   } else if (auto RC = dynamic_cast<ReservedConst *>(I)) {
     if (!constMap) {

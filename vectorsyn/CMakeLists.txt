@@ -6,6 +6,7 @@ set(SYNTHESIZER_SRC
   "lib/IR.cpp"
   "lib/LLVMGen.cpp"
   "lib/SIMDBinOp.cpp"
+  "lib/Slicing.cpp"
 )
 
 add_library(synth STATIC ${SYNTHESIZER_SRC})

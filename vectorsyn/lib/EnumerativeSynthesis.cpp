@@ -4,6 +4,7 @@
 #include "ConstantSynthesis.h"
 #include "IR.h"
 #include "LLVMGen.h"
+#include "Slicing.h"
 
 #include "smt/smt.h"
 #include "tools/transform.h"
@@ -71,7 +72,7 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
                         set<unique_ptr<ReservedConst>>>> &R) {
   auto &Ctx = V->getContext();
   R.clear();
-  vector<Comp *> Comps;
+  vector<Value *> Comps;
   for (auto &I : Inputs) {
     Comps.emplace_back(I.get());
   }
@@ -325,7 +326,7 @@ static bool compareFunctions(IR::Function &Func1, IR::Function &Func2,
 static bool
 constantSynthesis(IR::Function &Func1, IR::Function &Func2,
                   unsigned &goodCount, unsigned &badCount, unsigned &errorCount,
-                  unordered_map<const Value *, llvm::Argument *> &inputMap,
+                  unordered_map<const IR::Value *, llvm::Argument *> &inputMap,
                   unordered_map<llvm::Argument *, llvm::Constant *> &constMap) {
   TransformPrintOpts print_opts;
   smt_init->reset();
@@ -477,7 +478,8 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
           ++GI;
         }
 
-        llvm::CloneFunctionInto(GF, &F1, VMap, false, returns);
+        llvm::CloneFunctionInto(GF, &F1, VMap, 
+                llvm::CloneFunctionChangeType::LocalChangesOnly, returns);
 
         llvm::Instruction *PrevI = llvm::cast<llvm::Instruction>(VMap[&*I]);
         llvm::Value *V = LLVMGen(PrevI, IntrinsicDecls).codeGen(G.get(), VMap, nullptr);
@@ -505,7 +507,7 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
           result |= compareFunctions(*Func1, *Func2,
                                      goodCount, badCount, errorCount);
         } else {
-          unordered_map<const Value *, llvm::Argument *> inputMap;
+          unordered_map<const IR::Value *, llvm::Argument *> inputMap;
           for (auto &I : Func2->getInputs()) {
             string input_name = I.getName();
             // remove "%"

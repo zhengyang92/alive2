@@ -19,12 +19,10 @@ public:
   virtual ~Inst() {}
 };
 
-
-class Comp : public Inst {
-public:
+class Value : public Inst {
 };
 
-class Var final : public Comp {
+class Var final : public Value {
   llvm::Value *v;
 public:
   Var(llvm::Value *v) : v(v) {}
@@ -32,7 +30,7 @@ public:
   llvm::Value *V () { return v; }
 };
 
-class ReservedConst final : public Comp {
+class ReservedConst final : public Value {
   // type?
   llvm::Type *type;
   llvm::Argument *A;
@@ -44,7 +42,7 @@ public:
   void setA (llvm::Argument *Arg) { A = Arg; }
 };
 
-class BinOp final : public Inst {
+class BinOp final : public Value {
 public:
   enum Op { band, bor, bxor, add, sub, mul, sdiv, udiv, lshr, ashr, shl};
 private:
@@ -62,7 +60,7 @@ public:
   }
 };
 
-class ICmpOp final : public Inst {
+class ICmpOp final : public Value {
 public:
   // syntactic pruning: less than/less equal only
   enum Cond { eq, ne, ult, ule, slt, sle};
@@ -78,7 +76,7 @@ public:
   Cond K() { return cond; }
 };
 
-class BitCastOp final : public Inst {
+class BitCastOp final : public Value {
   Inst* i;
   unsigned lanes_from, lanes_to;
   unsigned width_from, width_to;
@@ -89,8 +87,7 @@ public:
   Inst *I() { return i; }
 };
 
-class SIMDBinOpIntr final : public Inst {
-private:
+class SIMDBinOpIntr final : public Value {
   IR::SIMDBinOp::Op op;
   Inst* lhs;
   Inst* rhs;
@@ -104,5 +101,22 @@ public:
 };
 
 class Hole : Inst {
+};
+
+class Load final : public Value {
+  Inst* ptr;
+public:
+  Inst *Ptr() { return ptr; }
+};
+
+class Store final : public Inst {
+  Inst *ptr;
+  Inst *value;
+public:
+  Inst *Ptr() { return ptr; }
+};
+
+class GEP final : public Value {
+
 };
 };
