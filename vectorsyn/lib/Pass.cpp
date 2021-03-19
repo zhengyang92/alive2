@@ -83,14 +83,14 @@ llvm::cl::opt<bool> opt_disable_undef_input(
   llvm::cl::init(false));
 
 llvm::cl::opt<unsigned> opt_src_unrolling_factor(
-    "tv-src-unroll",
-    llvm::cl::desc("Unrolling factor for src function (default=0)"),
-    llvm::cl::init(0));
+  "so-src-unroll",
+  llvm::cl::desc("Unrolling factor for src function (default=0)"),
+  llvm::cl::init(0));
 
 llvm::cl::opt<unsigned> opt_tgt_unrolling_factor(
-    "tv-tgt-unroll",
-    llvm::cl::desc("Unrolling factor for tgt function (default=0)"),
-    llvm::cl::init(0));
+  "so-tgt-unroll",
+  llvm::cl::desc("Unrolling factor for tgt function (default=0)"),
+  llvm::cl::init(0));
 
 llvm::cl::opt<bool> opt_debug(
   "so-dbg",
