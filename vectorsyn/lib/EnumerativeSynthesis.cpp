@@ -19,8 +19,10 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/Passes/PassBuilder.h"
-#include "llvm/Transforms/Utils/Cloning.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar/DCE.h"
+#include "llvm/Transforms/Utils/Cloning.h"
+
 
 #include <iostream>
 #include <queue>
@@ -79,8 +81,28 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
 
   auto RC1 = make_unique<ReservedConst>(nullptr);
   Comps.emplace_back(RC1.get());
+
   llvm::Type *ty = V->getType();
-  for (unsigned K = BinOp::Op::band; K <= BinOp::Op::mul; K++) {
+  // Unary operators
+  for (unsigned K = UnaryOp::Op::copy; K <= UnaryOp::Op::copy; ++K) {
+    for (auto Op = Comps.begin(); Op != Comps.end(); ++Op) {
+      set<unique_ptr<ReservedConst>> RCs;
+      Inst *I = nullptr;
+      if (dynamic_cast<ReservedConst *>(*Op)) {
+        auto T = make_unique<ReservedConst>(ty);
+        I = T.get();
+        RCs.insert(move(T));
+      } else if (dynamic_cast<Var *>(*Op)) {
+        // TODO;
+        continue;
+      }
+      UnaryOp::Op op = static_cast<UnaryOp::Op>(K);
+      auto UO = make_unique<UnaryOp>(op, *I);
+      R.push_back(make_pair(move(UO), move(RCs)));
+    }
+  }
+
+  for (unsigned K = BinOp::Op::band; K <= BinOp::Op::mul; ++K) {
     for (auto Op0 = Comps.begin(); Op0 != Comps.end(); ++Op0) {
       auto Op1 = BinOp::isCommutative((BinOp::Op)K) ? Op0 : Comps.begin();
       for (; Op1 != Comps.end(); ++Op1) {
@@ -375,8 +397,7 @@ constantSynthesis(IR::Function &Func1, IR::Function &Func2,
   return ret;
 }
 
-  //void optimizeFunction(llvm::Function &F) {
-static void DCE(llvm::Function &F) {
+static void cleanup(llvm::Function &F) {
   llvm::LoopAnalysisManager LAM;
   llvm::FunctionAnalysisManager FAM;
   llvm::CGSCCAnalysisManager CGAM;
@@ -391,6 +412,7 @@ static void DCE(llvm::Function &F) {
 
   llvm::FunctionPassManager FPM;
   FPM.addPass(llvm::DCEPass());
+  FPM.addPass(llvm::InstCombinePass());
   FPM.run(F, FAM);
 }
 
@@ -417,13 +439,14 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
 
   for (auto &BB : F1) {
     for (llvm::BasicBlock::reverse_iterator I = BB.rbegin(), E = BB.rend(); I != E; I++) {
+      if (!I->hasNUsesOrMore(1))
+        continue;
       unordered_map<llvm::Argument *, llvm::Constant *> constMap;
       set<unique_ptr<Var>> Inputs;
       findInputs(&*I, Inputs, 20);
 
       vector<pair<unique_ptr<Inst>,set<unique_ptr<ReservedConst>>>> Sketches;
       getSketches(Inputs, &*I, Sketches);
-
 
       if (Sketches.empty()) continue;
 
@@ -485,7 +508,7 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
         llvm::Value *V = LLVMGen(PrevI, IntrinsicDecls).codeGen(G.get(), VMap, nullptr);
         PrevI->replaceAllUsesWith(V);
 
-        DCE(*GF);
+        cleanup(*GF);
         if (GF->getInstructionCount() >= F1.getInstructionCount()) {
           GF->eraseFromParent();
           continue;
@@ -498,9 +521,7 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
       while (!Fns.empty()) {
         auto [GF, G, HaveC] = Fns.top();
         Fns.pop();
-        F1.dump();
         auto Func1 = llvm_util::llvm2alive(F1, *TLI);
-        GF->dump();
         auto Func2 = llvm_util::llvm2alive(*GF, *TLI);
         unsigned goodCount = 0, badCount = 0, errorCount = 0;
         if (!HaveC) {
@@ -539,7 +560,7 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
         llvm::ValueToValueMapTy VMap;
         llvm::Value *V = LLVMGen(&*I, IntrinsicDecls).codeGen(R, VMap, &constMap);
         I->replaceAllUsesWith(V);
-        DCE(F1);
+        cleanup(F1);
         changed = true;
         break;
       }

@@ -108,8 +108,7 @@ struct SuperoptimizerPass final : public llvm::FunctionPass {
 
   SuperoptimizerPass() : FunctionPass(ID) {}
 
-  bool runOnFunction(llvm::Function &F) override {
-    F.dump();
+  bool runOnFunction(llvm::Function &F) override {  
     llvm::TargetLibraryInfo *TLI = &getAnalysis<llvm::TargetLibraryInfoWrapperPass>().getTLI(F);
     return vectorsynth::synthesize(F, TLI);
   }

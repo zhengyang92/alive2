@@ -42,6 +42,20 @@ public:
   void setA (llvm::Argument *Arg) { A = Arg; }
 };
 
+class UnaryOp final : public Value {
+public:
+  enum Op { copy };
+private:
+  Op op;
+  Inst* op0;
+public:
+  UnaryOp(Op op, Inst &op0) : op(op), op0(&op0) {}
+  void print(std::ostream &os) const override;
+  Inst *Op0() { return op0; }
+
+  Op K() { return op; }
+};
+
 class BinOp final : public Value {
 public:
   enum Op { band, bor, bxor, add, sub, mul, sdiv, udiv, lshr, ashr, shl};

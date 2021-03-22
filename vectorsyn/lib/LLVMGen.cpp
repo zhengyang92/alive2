@@ -25,13 +25,21 @@ llvm::Value* LLVMGen::codeGen(Inst *I, ValueToValueMapTy &VMap,
     } else {
       return VMap[V->V()];
     }
+  } else if (auto U = dynamic_cast<UnaryOp *>(I)) {
+    auto op0 = codeGen(U->Op0(), VMap, constMap);
+    llvm::Value *r = nullptr;
+    switch (U->K()) {
+    case UnaryOp::copy:
+      r = op0;
+      break;
+    default:
+      UNREACHABLE();
+    }
+    return r;
   } else if (auto B = dynamic_cast<BinOp *>(I)) {
     auto op0 = codeGen(B->L(), VMap, constMap);
     auto op1 = codeGen(B->R(), VMap, constMap);
     llvm::Value *r = nullptr;
-      cout<<B->K()<<endl;
-      op0->dump();
-      op1->dump();
     switch (B->K()) {
     case BinOp::band:
       r = b.CreateAnd(op0, op1, "and");
