@@ -6,6 +6,7 @@
 #include "LLVMGen.h"
 #include "Slicing.h"
 
+#include "ir/globals.h"
 #include "smt/smt.h"
 #include "tools/transform.h"
 #include "util/symexec.h"
@@ -19,7 +20,6 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/Passes/PassBuilder.h"
-#include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar/DCE.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 
@@ -103,8 +103,9 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
   }
 
   for (unsigned K = BinOp::Op::band; K <= BinOp::Op::mul; ++K) {
+    BinOp::Op Op = static_cast<BinOp::Op>(K);
     for (auto Op0 = Comps.begin(); Op0 != Comps.end(); ++Op0) {
-      auto Op1 = BinOp::isCommutative((BinOp::Op)K) ? Op0 : Comps.begin();
+      auto Op1 = BinOp::isCommutative(Op) ? Op0 : Comps.begin();
       for (; Op1 != Comps.end(); ++Op1) {
         Inst *I = nullptr, *J = nullptr;
         set<unique_ptr<ReservedConst>> RCs;
@@ -119,11 +120,17 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
             I = T.get();
             RCs.insert(move(T));
             J = R;
+            if (BinOp::isCommutative(Op)) {
+              swap(I, J);
+            }
           } else continue;
         }
         // (op var, rc)
         else if (dynamic_cast<ReservedConst *>(*Op1)) {
           if (auto L = dynamic_cast<Var *>(*Op0)) {
+            // do not generate (- x 3) which can be represented as (+ x -3)
+            if (Op == BinOp::Op::sub)
+              continue;
             if (L->V()->getType() != ty)
               continue;
             I = L;
@@ -145,8 +152,7 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
           I = *Op0;
           J = *Op1;
         }
-        BinOp::Op op = static_cast<BinOp::Op>(K);
-        auto BO = make_unique<BinOp>(op, *I, *J);
+        auto BO = make_unique<BinOp>(Op, *I, *J);
         R.push_back(make_pair(move(BO), move(RCs)));
       }
     }
@@ -412,7 +418,6 @@ static void cleanup(llvm::Function &F) {
 
   llvm::FunctionPassManager FPM;
   FPM.addPass(llvm::DCEPass());
-  FPM.addPass(llvm::InstCombinePass());
   FPM.run(F, FAM);
 }
 
@@ -429,6 +434,8 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
   config::disable_poison_input = true;
   config::src_unroll_cnt = 2;
   config::tgt_unroll_cnt = 2;
+
+  bits_byte = 8;
 
   bool changed = false;
 

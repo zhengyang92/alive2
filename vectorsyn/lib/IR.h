@@ -70,7 +70,7 @@ public:
   Inst *R() { return rhs; }
   Op K() { return op; }
   static bool isCommutative (Op k) {
-    return k == Op::band || k == Op::bor || k == Op::bxor || k == Op::mul;
+    return k == Op::band || k == Op::bor || k == Op::bxor || k == Op::add|| k == Op::mul;
   }
 };
 
