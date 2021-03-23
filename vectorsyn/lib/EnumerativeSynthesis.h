@@ -10,5 +10,5 @@ class TargetLibraryInfo;
 }
 
 namespace vectorsynth {
-bool synthesize (llvm::Function &F1, llvm::TargetLibraryInfo *TLI);
+bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI);
 };

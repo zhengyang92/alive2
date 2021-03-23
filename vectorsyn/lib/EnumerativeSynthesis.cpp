@@ -83,6 +83,10 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
   Comps.emplace_back(RC1.get());
 
   llvm::Type *ty = V->getType();
+
+  // do not synthesize pointers
+  if (ty->isPointerTy())
+    return false;
   // Unary operators
   for (unsigned K = UnaryOp::Op::copy; K <= UnaryOp::Op::copy; ++K) {
     for (auto Op = Comps.begin(); Op != Comps.end(); ++Op) {
@@ -559,6 +563,7 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
         llvm::Instruction *PrevI = llvm::cast<llvm::Instruction>(VMap[&*I]);
         llvm::Value *V = LLVMGen(PrevI, IntrinsicDecls).codeGen(G.get(), VMap, nullptr);
         PrevI->replaceAllUsesWith(V);
+        GF->dump();
 
         cleanup(*GF);
         if (GF->getInstructionCount() >= F1.getInstructionCount()) {

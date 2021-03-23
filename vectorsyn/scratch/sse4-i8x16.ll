@@ -853,42 +853,42 @@ define internal <16 x i64> @convertmask_i64_i64_16(<16 x i64>) {
   
 define void @__streaming_store_varying_float(float* nocapture, <16 x float>) nounwind alwaysinline {
   %ptr = bitcast float* %0 to <16 x float>*
-  store <16 x float> %1, <16 x float>* %ptr , !nontemporal !1
+  store <16 x float> %1, <16 x float>* %ptr 
   ret void
 }
 
   
 define void @__streaming_store_varying_double(double* nocapture, <16 x double>) nounwind alwaysinline {
   %ptr = bitcast double* %0 to <16 x double>*
-  store <16 x double> %1, <16 x double>* %ptr , !nontemporal !1
+  store <16 x double> %1, <16 x double>* %ptr 
   ret void
 }
 
   
 define void @__streaming_store_varying_i8(i8* nocapture, <16 x i8>) nounwind alwaysinline {
   %ptr = bitcast i8* %0 to <16 x i8>*
-  store <16 x i8> %1, <16 x i8>* %ptr , !nontemporal !1
+  store <16 x i8> %1, <16 x i8>* %ptr 
   ret void
 }
 
   
 define void @__streaming_store_varying_i16(i16* nocapture, <16 x i16>) nounwind alwaysinline {
   %ptr = bitcast i16* %0 to <16 x i16>*
-  store <16 x i16> %1, <16 x i16>* %ptr , !nontemporal !1
+  store <16 x i16> %1, <16 x i16>* %ptr 
   ret void
 }
 
   
 define void @__streaming_store_varying_i32(i32* nocapture, <16 x i32>) nounwind alwaysinline {
   %ptr = bitcast i32* %0 to <16 x i32>*
-  store <16 x i32> %1, <16 x i32>* %ptr , !nontemporal !1
+  store <16 x i32> %1, <16 x i32>* %ptr 
   ret void
 }
 
   
 define void @__streaming_store_varying_i64(i64* nocapture, <16 x i64>) nounwind alwaysinline {
   %ptr = bitcast i64* %0 to <16 x i64>*
-  store <16 x i64> %1, <16 x i64>* %ptr , !nontemporal !1
+  store <16 x i64> %1, <16 x i64>* %ptr 
   ret void
 }
 
@@ -896,37 +896,37 @@ define void @__streaming_store_varying_i64(i64* nocapture, <16 x i64>) nounwind 
   
   
 define void @__streaming_store_uniform_float(float* nocapture, float) nounwind alwaysinline {
-  store float %1, float * %0 , !nontemporal !1
+  store float %1, float * %0 
   ret void
 }
 
   
 define void @__streaming_store_uniform_double(double* nocapture, double) nounwind alwaysinline {
-  store double %1, double * %0 , !nontemporal !1
+  store double %1, double * %0 
   ret void
 }
 
   
 define void @__streaming_store_uniform_i8(i8* nocapture, i8) nounwind alwaysinline {
-  store i8 %1, i8 * %0 , !nontemporal !1
+  store i8 %1, i8 * %0 
   ret void
 }
 
   
 define void @__streaming_store_uniform_i16(i16* nocapture, i16) nounwind alwaysinline {
-  store i16 %1, i16 * %0 , !nontemporal !1
+  store i16 %1, i16 * %0 
   ret void
 }
 
   
 define void @__streaming_store_uniform_i32(i32* nocapture, i32) nounwind alwaysinline {
-  store i32 %1, i32 * %0 , !nontemporal !1
+  store i32 %1, i32 * %0 
   ret void
 }
 
   
 define void @__streaming_store_uniform_i64(i64* nocapture, i64) nounwind alwaysinline {
-  store i64 %1, i64 * %0 , !nontemporal !1
+  store i64 %1, i64 * %0 
   ret void
 }
 
@@ -955,7 +955,7 @@ define void @__streaming_store_uniform_i64(i64* nocapture, i64) nounwind alwaysi
   define <16 x float> @__streaming_load_varying_float(float* nocapture) nounwind alwaysinline {
   %ptr = bitcast float* %0 to <16 x float>*
   %loadval = load <16 x float> , <16 x float> *
- %ptr , !nontemporal !1
+ %ptr 
   ret <16 x float> %loadval
 }
 
@@ -963,7 +963,7 @@ define void @__streaming_store_uniform_i64(i64* nocapture, i64) nounwind alwaysi
   define <16 x double> @__streaming_load_varying_double(double* nocapture) nounwind alwaysinline {
   %ptr = bitcast double* %0 to <16 x double>*
   %loadval = load <16 x double> , <16 x double> *
- %ptr , !nontemporal !1
+ %ptr 
   ret <16 x double> %loadval
 }
 
@@ -971,7 +971,7 @@ define void @__streaming_store_uniform_i64(i64* nocapture, i64) nounwind alwaysi
   define <16 x i8> @__streaming_load_varying_i8(i8* nocapture) nounwind alwaysinline {
   %ptr = bitcast i8* %0 to <16 x i8>*
   %loadval = load <16 x i8> , <16 x i8> *
- %ptr , !nontemporal !1
+ %ptr 
   ret <16 x i8> %loadval
 }
 
@@ -979,7 +979,7 @@ define void @__streaming_store_uniform_i64(i64* nocapture, i64) nounwind alwaysi
   define <16 x i16> @__streaming_load_varying_i16(i16* nocapture) nounwind alwaysinline {
   %ptr = bitcast i16* %0 to <16 x i16>*
   %loadval = load <16 x i16> , <16 x i16> *
- %ptr , !nontemporal !1
+ %ptr 
   ret <16 x i16> %loadval
 }
 
@@ -987,7 +987,7 @@ define void @__streaming_store_uniform_i64(i64* nocapture, i64) nounwind alwaysi
   define <16 x i32> @__streaming_load_varying_i32(i32* nocapture) nounwind alwaysinline {
   %ptr = bitcast i32* %0 to <16 x i32>*
   %loadval = load <16 x i32> , <16 x i32> *
- %ptr , !nontemporal !1
+ %ptr 
   ret <16 x i32> %loadval
 }
 
@@ -995,7 +995,7 @@ define void @__streaming_store_uniform_i64(i64* nocapture, i64) nounwind alwaysi
   define <16 x i64> @__streaming_load_varying_i64(i64* nocapture) nounwind alwaysinline {
   %ptr = bitcast i64* %0 to <16 x i64>*
   %loadval = load <16 x i64> , <16 x i64> *
- %ptr , !nontemporal !1
+ %ptr 
   ret <16 x i64> %loadval
 }
 
@@ -1004,42 +1004,42 @@ define void @__streaming_store_uniform_i64(i64* nocapture, i64) nounwind alwaysi
   
 define float @__streaming_load_uniform_float(float* nocapture) nounwind alwaysinline {
   %loadval = load float , float *
- %0 , !nontemporal !1
+ %0 
   ret float %loadval
 }
 
   
 define double @__streaming_load_uniform_double(double* nocapture) nounwind alwaysinline {
   %loadval = load double , double *
- %0 , !nontemporal !1
+ %0 
   ret double %loadval
 }
 
   
 define i8 @__streaming_load_uniform_i8(i8* nocapture) nounwind alwaysinline {
   %loadval = load i8 , i8 *
- %0 , !nontemporal !1
+ %0 
   ret i8 %loadval
 }
 
   
 define i16 @__streaming_load_uniform_i16(i16* nocapture) nounwind alwaysinline {
   %loadval = load i16 , i16 *
- %0 , !nontemporal !1
+ %0 
   ret i16 %loadval
 }
 
   
 define i32 @__streaming_load_uniform_i32(i32* nocapture) nounwind alwaysinline {
   %loadval = load i32 , i32 *
- %0 , !nontemporal !1
+ %0 
   ret i32 %loadval
 }
 
   
 define i64 @__streaming_load_uniform_i64(i64* nocapture) nounwind alwaysinline {
   %loadval = load i64 , i64 *
- %0 , !nontemporal !1
+ %0 
   ret i64 %loadval
 }
 
