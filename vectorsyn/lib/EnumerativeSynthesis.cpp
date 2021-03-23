@@ -309,6 +309,48 @@ static bool getSketches(set<unique_ptr<Var>> &Inputs, llvm::Value *V,
   return true;
 }
 
+static void calculateAndInitConstants(Transform &t) {
+  // ceil(log2(maxblks)) + 1 for local bit
+  bits_for_bid = 1;
+
+  // reserve a multiple of 4 for the number of offset bits to make SMT &
+  // counterexamples more readable
+  // Allow an extra bit for the sign
+  bits_for_offset = 4;
+  // we need an extra bit because 1st bit of size is always 0
+  bits_size_t = 4;
+  bits_byte = 8;
+
+  bits_poison_per_byte = 8;
+
+  little_endian = t.src.isLittleEndian();
+
+  if (config::debug)
+    config::dbg() << "\nnum_locals_src: " << num_locals_src
+                  << "\nnum_locals_tgt: " << num_locals_tgt
+                  << "\nnum_nonlocals_src: " << num_nonlocals_src
+                  << "\nnum_nonlocals: " << num_nonlocals
+                  << "\nbits_for_bid: " << bits_for_bid
+                  << "\nbits_for_offset: " << bits_for_offset
+                  << "\nbits_size_t: " << bits_size_t
+                  << "\nbits_program_pointer: " << bits_program_pointer
+                  << "\nbits_byte: " << bits_byte
+                  << "\nbits_poison_per_byte: " << bits_poison_per_byte
+                  << "\nstrlen_unroll_cnt: " << strlen_unroll_cnt
+                  << "\nmemcmp_unroll_cnt: " << memcmp_unroll_cnt
+                  << "\nlittle_endian: " << little_endian
+                  << "\nhas_int2ptr: " << has_int2ptr
+                  << "\nhas_ptr2int: " << has_ptr2int
+                  << "\nhas_malloc: " << has_malloc
+                  << "\nhas_free: " << has_free
+                  << "\nhas_null_block: " << has_null_block
+                  << "\ndoes_ptr_store: " << does_ptr_store
+                  << "\ndoes_ptr_mem_access: " << does_ptr_mem_access
+                  << "\ndoes_int_mem_access: " << does_int_mem_access
+                  << '\n';
+}
+
+
 static optional<smt::smt_initializer> smt_init;
 static bool compareFunctions(IR::Function &Func1, IR::Function &Func2,
                              unsigned &goodCount,
@@ -318,7 +360,9 @@ static bool compareFunctions(IR::Function &Func1, IR::Function &Func2,
   Transform t;
   t.src = move(Func1);
   t.tgt = move(Func2);
+
   t.preprocess();
+  calculateAndInitConstants(t);
   TransformVerify verifier(t, false);
   t.print(cout, print_opts);
 
@@ -361,6 +405,9 @@ constantSynthesis(IR::Function &Func1, IR::Function &Func2,
   Transform t;
   t.src = move(Func1);
   t.tgt = move(Func2);
+
+  calculateAndInitConstants(t);
+
   vectorsynth::ConstantSynthesis verifier(t);
   t.print(cout, print_opts);
   // assume type verifies
@@ -434,8 +481,6 @@ bool synthesize(llvm::Function &F1, llvm::TargetLibraryInfo *TLI) {
   config::disable_poison_input = true;
   config::src_unroll_cnt = 2;
   config::tgt_unroll_cnt = 2;
-
-  bits_byte = 8;
 
   bool changed = false;
 
