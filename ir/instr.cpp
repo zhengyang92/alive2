@@ -12,6 +12,7 @@
 #include <functional>
 #include <numeric>
 #include <sstream>
+#include <iostream>
 
 using namespace smt;
 using namespace util;
@@ -3827,6 +3828,102 @@ expr ShuffleVector::getTypeConstraints(const Function &f) const {
 unique_ptr<Instr> ShuffleVector::dup(const string &suffix) const {
   return make_unique<ShuffleVector>(getType(), getName() + suffix,
                                     *v1, *v2, mask);
+}
+
+
+vector<Value*> X86IntrinBinOp::operands() const {
+  return { a, b };
+}
+
+void X86IntrinBinOp::rauw(const Value &what, Value &with) {
+  RAUW(a);
+  RAUW(b);
+}
+
+void X86IntrinBinOp::print(ostream &os) const {
+  const char *str = nullptr;
+  switch (op) {
+  case sse2_psrl_w:
+    str = "x86.sse2.psrl.w ";
+    break;
+  case sse2_psrl_d:
+    str = "x86.sse2.psrl.d ";
+    break;
+  case sse2_psrl_q:
+    str = "x86.sse2.psrl.q ";
+    break;
+  case avx2_psrl_w:
+    str = "x86.avx2.psrl.w ";
+    break;
+  case avx2_psrl_d:
+    str = "x86.avx2.psrl.d ";
+    break;
+  case avx2_psrl_q:
+    str = "x86.avx2.psrl.q ";
+    break;
+  }
+  os << getName() << " = " << str << *a << ", " << *b;
+}
+
+StateValue X86IntrinBinOp::toSMT(State &s) const {
+  auto rty =    getType().getAsAggregateType();
+  auto aty = a->getType().getAsAggregateType();
+  auto bty = b->getType().getAsAggregateType();
+  auto &av = s[*a];
+  auto &bv = s[*b];
+
+  switch (op) {
+  case sse2_psrl_w:
+  case sse2_psrl_d:
+  case sse2_psrl_q:
+  case avx2_psrl_w:
+  case avx2_psrl_d:
+  case avx2_psrl_q:
+  {
+    vector<StateValue> vals;
+    auto &[lanes, bits] = shape_op0[op];
+    expr zero = expr::mkUInt(0, bits);
+
+    auto &b_elem_ty = bty->getChild(0);
+    unsigned np_bits = (64 / b_elem_ty.bits()) * b_elem_ty.np_bits();
+    expr shift_v = bty->extract(bv, 0).value;
+    cout<<shift_v<<endl;
+    cout<<bv.value<<endl;
+    expr shift_np = bv.non_poison.trunc(np_bits) == 0;
+    expr overflow = bv.value.extract(bv.bits(), bv.bits() - 64).uge(expr::mkUInt(bits, 64));
+    for (unsigned i = 0, e = aty->numElementsConst(); i != e; ++i) {
+      auto ai = aty->extract(av, i);
+      expr v = expr::mkIf(move(overflow), move(zero), ai.value.lshr(shift_v));
+      vals.emplace_back(move(v), shift_np && ai.non_poison);
+    }
+    return rty->aggregateVals(vals);
+  }
+  // TODO: add semantic for other intrinsics
+  }
+}
+
+expr X86IntrinBinOp::getTypeConstraints(const Function &f) const {
+  auto op0 = shape_op0[op];
+  auto op1 = shape_op1[op];
+  auto ret = shape_ret[op];
+
+  return Value::getTypeConstraints() &&
+    a->getType().enforceVectorType() &&
+    b->getType().enforceVectorType() &&
+       getType().enforceVectorType() &&
+    a->getType().enforceVectorType([op0](auto &ty)
+         { return ty.enforceIntType(op0.second); }) &&
+    b->getType().enforceVectorType([op1](auto &ty)
+         { return ty.enforceIntType(op1.second); }) &&
+       getType().enforceVectorType([ret](auto &ty)
+         { return ty.enforceIntType(ret.second); }) &&
+    a->getType().getAsAggregateType()->numElements() == op0.first &&
+    b->getType().getAsAggregateType()->numElements() == op1.first &&
+       getType().getAsAggregateType()->numElements() == ret.first;
+}
+
+unique_ptr<Instr> X86IntrinBinOp::dup(const string &suffix) const {
+  return make_unique<X86IntrinBinOp>(getType(), getName() + suffix, *a, *b, op);
 }
 
 

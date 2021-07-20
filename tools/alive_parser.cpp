@@ -1075,6 +1075,28 @@ static unique_ptr<Instr> parse_copyop(string_view name, token t) {
   return make_unique<UnaryOp>(ty, string(name), op, UnaryOp::Copy);
 }
 
+static unique_ptr<Instr> parse_x86_intrin_binop(string_view name,
+                                                token op_token) {
+  // %p = op_code ty %a, ty %b
+  auto &ty_a = parse_type();
+  auto &a = parse_operand(ty_a);
+  parse_comma();
+  auto &ty_b = parse_type();
+  auto &b = parse_operand(ty_b);
+  X86IntrinBinOp::Op op;
+  switch (op_token) {
+  case X86_SSE2_PSRL_W: op = X86IntrinBinOp::sse2_psrl_w; break;
+  case X86_SSE2_PSRL_D: op = X86IntrinBinOp::sse2_psrl_d; break;
+  case X86_SSE2_PSRL_Q: op = X86IntrinBinOp::sse2_psrl_q; break;
+  case X86_AVX2_PSRL_W: op = X86IntrinBinOp::avx2_psrl_w; break;
+  case X86_AVX2_PSRL_D: op = X86IntrinBinOp::avx2_psrl_d; break;
+  case X86_AVX2_PSRL_Q: op = X86IntrinBinOp::avx2_psrl_q; break;
+  default:
+    UNREACHABLE();
+  }
+  return make_unique<X86IntrinBinOp>(get_sym_type(), string(name), a, b, op);
+}
+
 static unique_ptr<Instr> parse_instr(string_view name) {
   switch (auto t = *tokenizer) {
   case ADD:
@@ -1190,6 +1212,13 @@ static unique_ptr<Instr> parse_instr(string_view name) {
   case REGISTER:
   case ARRAY_TYPE_PREFIX:
     return parse_copyop(name, t);
+  case X86_SSE2_PSRL_W:
+  case X86_SSE2_PSRL_D:
+  case X86_SSE2_PSRL_Q:
+  case X86_AVX2_PSRL_W:
+  case X86_AVX2_PSRL_D:
+  case X86_AVX2_PSRL_Q:
+    return parse_x86_intrin_binop(name, t);
   default:
     tokenizer.unget(t);
     return nullptr;

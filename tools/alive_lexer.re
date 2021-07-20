@@ -299,6 +299,12 @@ space+ {
 "fpext" { return FPEXT; }
 "fptrunc" { return FPTRUNC; }
 "ptrtoint" { return PTRTOINT; }
+"x86.sse2.psrl.w" { return X86_SSE2_PSRL_W; }
+"x86.sse2.psrl.d" { return X86_SSE2_PSRL_D; }
+"x86.sse2.psrl.q" { return X86_SSE2_PSRL_Q; }
+"x86.avx2.psrl.w" { return X86_AVX2_PSRL_W; }
+"x86.avx2.psrl.d" { return X86_AVX2_PSRL_D; }
+"x86.avx2.psrl.q" { return X86_AVX2_PSRL_Q; }
 "half" { return HALF;}
 "float" { return FLOAT;}
 "double" { return DOUBLE;}
