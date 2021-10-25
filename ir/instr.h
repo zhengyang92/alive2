@@ -990,7 +990,7 @@ public:
   /* avx2_pavg_w */       std::make_pair(16, 16),
   /* avx2_pshuf_b */      std::make_pair(32, 8),
   /* ssse3_pshuf_b_128 */ std::make_pair(16, 8),
-  /* ssse3_pabs_b */	  std::make_pair(8, 8)
+  /* ssse3_pabs_b */	  std::make_pair(0, 0)
   };
   static constexpr std::array<std::pair<unsigned, unsigned>, 12> shape_ret = {
   /* sse2_psrl_w */       std::make_pair(8, 16),
