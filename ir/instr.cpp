@@ -3908,6 +3908,9 @@ void X86IntrinBinOp::print(ostream &os) const {
   case ssse3_pshuf_b_128:
     str = "x86.ssse3.pshuf.b.128 ";
     break;
+  case ssse3_pabs_b:
+    str = "x86.ssse3.pabs.b ";
+    break;
   }
   os << getName() << " = " << str << *a << ", " << *b;
 }
