@@ -4014,7 +4014,7 @@ StateValue X86IntrinBinOp::toSMT(State &s) const {
     switch (op) {
     case ssse3_pabs_b:
       fn = [&](auto a) -> expr {
-        return (std::abs(a) + expr::mkInt(1, 8));
+        return a.abs();
       };
       break;
     default: UNREACHABLE();
