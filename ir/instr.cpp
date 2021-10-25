@@ -4009,7 +4009,16 @@ StateValue X86IntrinBinOp::toSMT(State &s) const {
   }
   case ssse3_pabs_b:
   {
-  
+    vector<StateValue> vals;
+    function<expr(const expr&)> fn;
+    switch (op) {
+    case ssse3_pabs_b:
+      fn = [&](auto a) -> expr {
+        return (std::abs(a) + expr::mkInt(1, 8));
+      };
+      break;
+    default: UNREACHABLE();
+    };  
   }
   // TODO: add semantic for other intrinsics
   default:
