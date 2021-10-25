@@ -4007,6 +4007,10 @@ StateValue X86IntrinBinOp::toSMT(State &s) const {
 
     return rty->aggregateVals(vals);
   }
+  case ssse3_pabs_b:
+  {
+  
+  }
   // TODO: add semantic for other intrinsics
   default:
     UNREACHABLE();
