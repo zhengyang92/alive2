@@ -3908,8 +3908,8 @@ void X86IntrinBinOp::print(ostream &os) const {
   case ssse3_pshuf_b_128:
     str = "x86.ssse3.pshuf.b.128 ";
     break;
-  case ssse3_pabs_b:
-    str = "x86.ssse3.pabs.b ";
+  case mmx_padd_b:
+    str = "x86.mmx.padd.b ";
     break;
   }
   os << getName() << " = " << str << *a << ", " << *b;
@@ -4007,18 +4007,25 @@ StateValue X86IntrinBinOp::toSMT(State &s) const {
 
     return rty->aggregateVals(vals);
   }
-  case ssse3_pabs_b:
+  case mmx_padd_b:
   {
     vector<StateValue> vals;
-    function<expr(const expr&)> fn;
+    function<expr(const expr&, const expr&)> fn;
     switch (op) {
-    case ssse3_pabs_b:
-      fn = [&](auto a) -> expr {
-        return a.abs();
+    case mmx_padd_b:
+      fn = [&](auto a, auto b) -> expr {
+        return a + b;
       };
       break;
     default: UNREACHABLE();
     };  
+    for (unsigned i = 0, e = rty->numElementsConst(); i != e; ++i) {
+      auto ai = aty->extract(av, i);
+      auto bi = bty->extract(bv, i);
+      vals.emplace_back(fn(ai.value, bi.value),
+                        ai.non_poison && bi.non_poison);
+    }
+    return rty->aggregateVals(vals);
   }
   // TODO: add semantic for other intrinsics
   default:
