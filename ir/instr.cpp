@@ -3911,6 +3911,12 @@ void X86IntrinBinOp::print(ostream &os) const {
   case mmx_padd_b:
     str = "x86.mmx.padd.b ";
     break;
+  case mmx_padd_w:
+    str = "x86.mmx.padd.w ";
+    break;
+  case mmx_padd_d:
+    str = "x86.mmx.padd.d ";
+    break;
   }
   os << getName() << " = " << str << *a << ", " << *b;
 }
@@ -4008,11 +4014,15 @@ StateValue X86IntrinBinOp::toSMT(State &s) const {
     return rty->aggregateVals(vals);
   }
   case mmx_padd_b:
+  case mmx_padd_w:
+  case mmx_padd_d:
   {
     vector<StateValue> vals;
     function<expr(const expr&, const expr&)> fn;
-    switch (op) {
+    switch (op) {	//TODO: Cleanup code if works
     case mmx_padd_b:
+    case mmx_padd_w:
+    case mmx_padd_d:
       fn = [&](auto a, auto b) -> expr {
         return a + b;
       };
