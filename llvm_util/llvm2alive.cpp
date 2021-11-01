@@ -86,13 +86,13 @@ class llvm2alive_ : public llvm::InstVisitor<llvm2alive_, unique_ptr<Instr>> {
   auto DL() const { return f.getParent()->getDataLayout(); }
 
   template <typename T>
-  unsigned alignment(T &i, llvm::Type *ty) const {
+  uint64_t alignment(T &i, llvm::Type *ty) const {
     auto a = i.getAlignment();
     return a != 0 ? a : DL().getABITypeAlignment(ty);
   }
 
   template <typename T>
-  unsigned pref_alignment(T &i, llvm::Type *ty) const {
+  uint64_t pref_alignment(T &i, llvm::Type *ty) const {
     auto a = i.getAlignment();
     return a != 0 ? a : DL().getPrefTypeAlignment(ty);
   }
@@ -1000,11 +1000,11 @@ public:
       case llvm::Intrinsic::x86_ssse3_pshuf_b_128:
         op = X86IntrinBinOp::ssse3_pshuf_b_128; break;
       case llvm::Intrinsic::x86_mmx_padd_b:
-	op = X86IntrinBinOp::mmx_padd_b; break;
+	      op = X86IntrinBinOp::mmx_padd_b; break;
       case llvm::Intrinsic::x86_mmx_padd_w:
-	op = X86IntrinBinOp::mmx_padd_w; break;
+	      op = X86IntrinBinOp::mmx_padd_w; break;
       case llvm::Intrinsic::x86_mmx_padd_d:
-	op = X86IntrinBinOp::mmx_padd_d; break;
+	      op = X86IntrinBinOp::mmx_padd_d; break;
       default: UNREACHABLE();
       }
       RETURN_IDENTIFIER(make_unique<X86IntrinBinOp>(*ty, value_name(i),
@@ -1151,7 +1151,7 @@ public:
         attrs.set(ParamAttrs::ByVal);
         auto ty = aset.getByValType();
         auto asz = DL().getTypeAllocSize(ty);
-        attrs.blockSize = max(attrs.blockSize, (unsigned)asz.getKnownMinSize());
+        attrs.blockSize = max(attrs.blockSize, asz.getKnownMinSize());
 
         attrs.set(ParamAttrs::Align);
         attrs.align = max(attrs.align, DL().getABITypeAlignment(ty));
@@ -1198,8 +1198,7 @@ public:
 
       case llvm::Attribute::Alignment:
         attrs.set(ParamAttrs::Align);
-        attrs.align = max(attrs.align,
-                          (unsigned)llvmattr.getAlignment()->value());
+        attrs.align = max(attrs.align, llvmattr.getAlignment()->value());
         continue;
 
       case llvm::Attribute::NoUndef:
@@ -1227,6 +1226,7 @@ public:
         continue;
 
       switch (llvmattr.getKindAsEnum()) {
+      case llvm::Attribute::NoAlias: attrs.set(FnAttrs::NoAlias); break;
       case llvm::Attribute::NonNull: attrs.set(FnAttrs::NonNull); break;
       case llvm::Attribute::NoUndef: attrs.set(FnAttrs::NoUndef); break;
 
