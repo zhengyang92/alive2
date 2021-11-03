@@ -1012,17 +1012,17 @@ public:
       case llvm::Intrinsic::x86_mmx_padd_d:
 	op = X86IntrinBinOp::mmx_padd_d; break;
       case llvm::Intrinsic::x86_mmx_punpckhbw:
-	op = X86IntrinBinOp::mmx_punpckh_bw; break;
+	op = X86IntrinBinOp::mmx_punpckhbw; break;
       case llvm::Intrinsic::x86_mmx_punpckhwd:
-	op = X86IntrinBinOp::mmx_punpckh_wd; break;
+	op = X86IntrinBinOp::mmx_punpckhwd; break;
       case llvm::Intrinsic::x86_mmx_punpckhdq:
-	op = X86IntrinBinOp::mmx_punpckh_dq; break;
+	op = X86IntrinBinOp::mmx_punpckhdq; break;
       case llvm::Intrinsic::x86_mmx_punpcklbw:
-	op = X86IntrinBinOp::mmx_punpckl_bw; break;
+	op = X86IntrinBinOp::mmx_punpcklbw; break;
       case llvm::Intrinsic::x86_mmx_punpcklwd:
-	op = X86IntrinBinOp::mmx_punpckl_wd; break;
+	op = X86IntrinBinOp::mmx_punpcklwd; break;
       case llvm::Intrinsic::x86_mmx_punpckldq:
-	op = X86IntrinBinOp::mmx_punpckl_dq; break;
+	op = X86IntrinBinOp::mmx_punpckldq; break;
       default: UNREACHABLE();
       }
       RETURN_IDENTIFIER(make_unique<X86IntrinBinOp>(*ty, value_name(i),

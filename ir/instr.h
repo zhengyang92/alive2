@@ -963,12 +963,12 @@ public:
   /* llvm.x86.mmx.padd.b */	   mmx_padd_b,
   /* llvm.x86.mmx.padd.w */	   mmx_padd_w,
   /* llvm.x86.mmx.padd.d */	   mmx_padd_d,
-  /* llvm.x86.mmx.punpckh.bw */	   mmx_punpckh_bw,
-  /* llvm.x86.mmx.punpckh.wd */	   mmx_punpckh_wd,
-  /* llvm.x86.mmx.punpckh.dq */	   mmx_punpckh_dq,
-  /* llvm.x86.mmx.punpckl.bw */	   mmx_punpckl_bw,
-  /* llvm.x86.mmx.punpckl.wd */	   mmx_punpckl_wd,
-  /* llvm.x86.mmx.punpckl.dq */	   mmx_punpckl_dq,
+  /* llvm.x86.mmx.punpckhbw */	   mmx_punpckhbw,
+  /* llvm.x86.mmx.punpckhwd */	   mmx_punpckhwd,
+  /* llvm.x86.mmx.punpckhdq */	   mmx_punpckhdq,
+  /* llvm.x86.mmx.punpcklbw */	   mmx_punpcklbw,
+  /* llvm.x86.mmx.punpcklwd */	   mmx_punpcklwd,
+  /* llvm.x86.mmx.punpckldq */	   mmx_punpckldq,
   };
 
   // the shape of a vector is stored as <# of lanes, element bits>
@@ -987,12 +987,12 @@ public:
   /* mmx_padd_b */	  std::make_pair(8, 8),
   /* mmx_padd_w */	  std::make_pair(4, 16),
   /* mmx_padd_d */	  std::make_pair(2, 32),
-  /* mmx_punpckh_bw */	  std::make_pair(8, 8),
-  /* mmx_punpckh_wd */	  std::make_pair(4, 16),
-  /* mmx_punpckh_dq */	  std::make_pair(2, 32),
-  /* mmx_punpckl_bw */	  std::make_pair(8, 8),
-  /* mmx_punpckl_wd */	  std::make_pair(4, 16),
-  /* mmx_punpckl_dq */	  std::make_pair(2, 32)
+  /* mmx_punpckhbw */	  std::make_pair(8, 8),
+  /* mmx_punpckhwd */	  std::make_pair(4, 16),
+  /* mmx_punpckhdq */	  std::make_pair(2, 32),
+  /* mmx_punpcklbw */	  std::make_pair(8, 8),
+  /* mmx_punpcklwd */	  std::make_pair(4, 16),
+  /* mmx_punpckldq */	  std::make_pair(2, 32)
   };
   static constexpr std::array<std::pair<unsigned, unsigned>, numOfX86Intrinsics> shape_op1 = {
   /* sse2_psrl_w */       std::make_pair(8, 16),
@@ -1009,12 +1009,12 @@ public:
   /* mmx_padd_b */	  std::make_pair(8, 8),
   /* mmx_padd_w */	  std::make_pair(4, 16),
   /* mmx_padd_d */	  std::make_pair(2, 32),
-  /* mmx_punpckh_bw */	  std::make_pair(8, 8),
-  /* mmx_punpckh_wd */	  std::make_pair(4, 16),
-  /* mmx_punpckh_dq */	  std::make_pair(2, 32),
-  /* mmx_punpckl_bw */	  std::make_pair(8, 8),
-  /* mmx_punpckl_wd */	  std::make_pair(4, 16),
-  /* mmx_punpckl_dq */	  std::make_pair(2, 32)
+  /* mmx_punpckhbw */	  std::make_pair(8, 8),
+  /* mmx_punpckhwd */	  std::make_pair(4, 16),
+  /* mmx_punpckhdq */	  std::make_pair(2, 32),
+  /* mmx_punpcklbw */	  std::make_pair(8, 8),
+  /* mmx_punpcklwd */	  std::make_pair(4, 16),
+  /* mmx_punpckldq */	  std::make_pair(2, 32)
   };
   static constexpr std::array<std::pair<unsigned, unsigned>, numOfX86Intrinsics> shape_ret = {
   /* sse2_psrl_w */       std::make_pair(8, 16),
@@ -1031,12 +1031,12 @@ public:
   /* mmx_padd_b */	  std::make_pair(8, 8),
   /* mmx_padd_w */	  std::make_pair(4, 16),
   /* mmx_padd_d */	  std::make_pair(2, 32),
-  /* mmx_punpckh_bw */	  std::make_pair(8, 8),
-  /* mmx_punpckh_wd */	  std::make_pair(4, 16),
-  /* mmx_punpckh_dq */	  std::make_pair(2, 32),
-  /* mmx_punpckl_bw */	  std::make_pair(8, 8),
-  /* mmx_punpckl_wd */	  std::make_pair(4, 16),
-  /* mmx_punpckl_dq */	  std::make_pair(2, 32)
+  /* mmx_punpckhbw */	  std::make_pair(8, 8),
+  /* mmx_punpckhwd */	  std::make_pair(4, 16),
+  /* mmx_punpckhdq */	  std::make_pair(2, 32),
+  /* mmx_punpcklbw */	  std::make_pair(8, 8),
+  /* mmx_punpcklwd */	  std::make_pair(4, 16),
+  /* mmx_punpckldq */	  std::make_pair(2, 32)
   };
 
 private:
