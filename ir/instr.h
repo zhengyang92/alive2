@@ -946,7 +946,7 @@ public:
 };
 
 class X86IntrinBinOp final : public Instr {
-  static constexpr unsigned numOfX86Intrinsics = 17;
+  static constexpr unsigned numOfX86Intrinsics = 20;
 public:
   enum Op {
   /* llvm.x86.sse2.psrl.w */       sse2_psrl_w,
@@ -966,6 +966,9 @@ public:
   /* llvm.x86.mmx.punpckh.bw */	   mmx_punpckh_bw,
   /* llvm.x86.mmx.punpckh.wd */	   mmx_punpckh_wd,
   /* llvm.x86.mmx.punpckh.dq */	   mmx_punpckh_dq,
+  /* llvm.x86.mmx.punpckl.bw */	   mmx_punpckl_bw,
+  /* llvm.x86.mmx.punpckl.wd */	   mmx_punpckl_wd,
+  /* llvm.x86.mmx.punpckl.dq */	   mmx_punpckl_dq,
   };
 
   // the shape of a vector is stored as <# of lanes, element bits>
@@ -986,7 +989,10 @@ public:
   /* mmx_padd_d */	  std::make_pair(2, 32),
   /* mmx_punpckh_bw */	  std::make_pair(8, 8),
   /* mmx_punpckh_wd */	  std::make_pair(4, 16),
-  /* mmx_punpckh_dq */	  std::make_pair(2, 32)
+  /* mmx_punpckh_dq */	  std::make_pair(2, 32),
+  /* mmx_punpckl_bw */	  std::make_pair(8, 8),
+  /* mmx_punpckl_wd */	  std::make_pair(4, 16),
+  /* mmx_punpckl_dq */	  std::make_pair(2, 32)
   };
   static constexpr std::array<std::pair<unsigned, unsigned>, numOfX86Intrinsics> shape_op1 = {
   /* sse2_psrl_w */       std::make_pair(8, 16),
@@ -1005,7 +1011,10 @@ public:
   /* mmx_padd_d */	  std::make_pair(2, 32),
   /* mmx_punpckh_bw */	  std::make_pair(8, 8),
   /* mmx_punpckh_wd */	  std::make_pair(4, 16),
-  /* mmx_punpckh_dq */	  std::make_pair(2, 32)
+  /* mmx_punpckh_dq */	  std::make_pair(2, 32),
+  /* mmx_punpckl_bw */	  std::make_pair(8, 8),
+  /* mmx_punpckl_wd */	  std::make_pair(4, 16),
+  /* mmx_punpckl_dq */	  std::make_pair(2, 32)
   };
   static constexpr std::array<std::pair<unsigned, unsigned>, numOfX86Intrinsics> shape_ret = {
   /* sse2_psrl_w */       std::make_pair(8, 16),
@@ -1024,7 +1033,10 @@ public:
   /* mmx_padd_d */	  std::make_pair(2, 32),
   /* mmx_punpckh_bw */	  std::make_pair(8, 8),
   /* mmx_punpckh_wd */	  std::make_pair(4, 16),
-  /* mmx_punpckh_dq */	  std::make_pair(2, 32)
+  /* mmx_punpckh_dq */	  std::make_pair(2, 32),
+  /* mmx_punpckl_bw */	  std::make_pair(8, 8),
+  /* mmx_punpckl_wd */	  std::make_pair(4, 16),
+  /* mmx_punpckl_dq */	  std::make_pair(2, 32)
   };
 
 private:
