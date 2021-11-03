@@ -3917,6 +3917,15 @@ void X86IntrinBinOp::print(ostream &os) const {
   case mmx_padd_d:
     str = "x86.mmx.padd.d ";
     break;
+  case mmx_punpckh_bw:
+    str = "x86.mmx.punpckhbw ";
+    break;
+  case mmx_punpckh_wd:
+    str = "x86.mmx.punpckhwd ";
+    break;
+  case mmx_punpckh_dq:
+    str = "x86.mmx.punpckhdq ";
+    break;
   }
   os << getName() << " = " << str << *a << ", " << *b;
 }
@@ -4019,6 +4028,29 @@ StateValue X86IntrinBinOp::toSMT(State &s) const {
                             true);
 
       vals.emplace_back(move(ai), move(pi));
+    }
+
+    return rty->aggregateVals(vals);
+  }
+  case mmx_punpckh_bw:
+  case mmx_punpckh_wd:
+  case mmx_punpckh_dq:
+  {
+    vector<StateValue> vals;
+    unsigned laneCount;
+    switch (op) {
+    case mmx_punpckh_bw: laneCount = 8; break;
+    case mmx_punpckh_wd: laneCount = 4; break;
+    case mmx_punpckh_dq: laneCount = 2; break;
+    default: UNREACHABLE();
+    }
+    //Starts at first lane of high half of both vectors
+    for (unsigned i = laneCount / 2; i != laneCount; ++i) {
+      auto ai = aty->extract(av, i);
+      auto bi = bty->extract(bv, i);
+      
+      vals.emplace_back(move(ai.value), move(ai.non_poison));
+      vals.emplace_back(move(bi.value), move(bi.non_poison));
     }
 
     return rty->aggregateVals(vals);

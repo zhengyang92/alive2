@@ -973,7 +973,10 @@ public:
     case llvm::Intrinsic::x86_ssse3_pshuf_b_128: 
     case llvm::Intrinsic::x86_mmx_padd_b: 
     case llvm::Intrinsic::x86_mmx_padd_w: 
-    case llvm::Intrinsic::x86_mmx_padd_d: {
+    case llvm::Intrinsic::x86_mmx_padd_d: 
+    case llvm::Intrinsic::x86_mmx_punpckhbw:
+    case llvm::Intrinsic::x86_mmx_punpckhwd:
+    case llvm::Intrinsic::x86_mmx_punpckhdq: {
       PARSE_BINOP();
       X86IntrinBinOp::Op op;
       switch (i.getIntrinsicID()) {
@@ -1005,6 +1008,12 @@ public:
 	op = X86IntrinBinOp::mmx_padd_w; break;
       case llvm::Intrinsic::x86_mmx_padd_d:
 	op = X86IntrinBinOp::mmx_padd_d; break;
+      case llvm::Intrinsic::x86_mmx_punpckhbw:
+	op = X86IntrinBinOp::mmx_punpckh_bw; break;
+      case llvm::Intrinsic::x86_mmx_punpckhwd:
+	op = X86IntrinBinOp::mmx_punpckh_wd; break;
+      case llvm::Intrinsic::x86_mmx_punpckhdq:
+	op = X86IntrinBinOp::mmx_punpckh_dq; break;
       default: UNREACHABLE();
       }
       RETURN_IDENTIFIER(make_unique<X86IntrinBinOp>(*ty, value_name(i),
