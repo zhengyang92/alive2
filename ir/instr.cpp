@@ -4064,8 +4064,8 @@ StateValue X86IntrinBinOp::toSMT(State &s) const {
       auto ai = aty->extract(av, i);
       auto bi = bty->extract(bv, i);
       
-      vals.emplace_back(move(ai.value), move(ai.non_poison));
-      vals.emplace_back(move(bi.value), move(bi.non_poison));
+      vals.emplace_back(move(ai));
+      vals.emplace_back(move(bi));
     }
 
     return rty->aggregateVals(vals);

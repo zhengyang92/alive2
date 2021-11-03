@@ -945,6 +945,7 @@ public:
   std::unique_ptr<Instr> dup(const std::string &suffix) const override;
 };
 
+
 class X86IntrinBinOp final : public Instr {
   static constexpr unsigned numOfX86Intrinsics = 20;
 public:
